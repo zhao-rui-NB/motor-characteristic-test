@@ -1,0 +1,32 @@
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtWidgets import *
+
+from ui.ui_MotorTestSystem import Ui_MotorTestSystem
+
+
+
+class MotorTestSystem:
+    def __init__(self):
+        self.ui = Ui_MotorTestSystem()
+        
+        self.ui.single_phase_menu.btn_NoLoad.clicked.connect(self.on_btn_NoLoad_clicked)
+        
+        self.ui.single_phase_menu.btn_LockedRotor.clicked.connect(self.on_btn_LockedRotor_clicked)
+        
+        
+        
+    def on_btn_NoLoad_clicked(self):
+        print("No Load")
+        
+    def on_btn_LockedRotor_clicked(self):
+        print("Locked Rotor")
+        
+    
+    
+    
+if __name__ == "__main__":
+    app = QApplication([])
+    window = MotorTestSystem()
+    window.ui.show()
+    app.exec()
