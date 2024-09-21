@@ -4,16 +4,22 @@ from PyQt6.QtWidgets import *
 
 
 from widget.ui.ui_PowerSupplyControlPanel import Ui_PowerSupplyControlPanel
-from widget.ui.ui_MotorTestSystem import Ui_MotorTestSystem
+# from widget.ui.ui_MotorTestSystem import Ui_MotorTestSystem
 
 from widget.ui.ui_MotorTestMenu import Ui_MotorTestMenu
 
 from widget.ui.ui_MotorMonitor import ui_MotorMornitor
 
+from widget.ui.ui_MotorParameter import Ui_MotorParameter
+from widget.logic.MotorParameter import MotorParameter
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        
+
+        
         self.setWindowTitle("Motor Test System")
         
         
@@ -54,19 +60,46 @@ class MainWindow(QMainWindow):
         self.mainlayout = QVBoxLayout(self.main_widget)
         
         
-        label = QLabel("Motor Test System")
+        # label
+        label = QLabel("高雄科技大學電機系\n馬達特性測試系統")
         label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.mainlayout.addWidget(label)
         
+        # motor parameter edit
+        self.motor_parameter_ui = Ui_MotorParameter()
+        self.motor_parameter = MotorParameter(self.motor_parameter_ui)
+        self.mainlayout.addWidget(self.motor_parameter_ui)
+
+        
+        
+        
         self.setup_menu_bar()
     
     def setup_menu_bar(self):
+        
         # menu bar 
         self.menu_bar = self.menuBar()
         
+        # set font size 20
+        font = QFont()
+        font.setPointSize(18)
+        self.menu_bar.setFont(font)
+        
         ## file menu
         self.file_menu = self.menu_bar.addMenu("File")
+        self.file_menu.setFont(font)
+        self.file_new = self.file_menu.addAction("New")
+        self.file_open = self.file_menu.addAction("Load")
+        self.file_save = self.file_menu.addAction("Save")
+        self.file_save_as = self.file_menu.addAction("Save As")
+        
+        self.file_new.triggered.connect(self.motor_parameter.new_file)
+        self.file_open.triggered.connect(self.motor_parameter.load_from_file)
+        self.file_save.triggered.connect(self.motor_parameter.save_file)
+        self.file_save_as.triggered.connect(self.motor_parameter.save_as_file)
+        
+        
 
         ## display menu
         self.display_menu = self.menu_bar.addMenu("Display")
@@ -110,6 +143,7 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication([])
+    app.setStyle('Fusion')
     window = MainWindow()
     window.show()
     

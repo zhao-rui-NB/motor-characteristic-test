@@ -103,7 +103,7 @@ class ui_MotorMornitor(QWidget):
     def resizeEvent(self, event:QResizeEvent):
         # put the self center widget to the center of the window
         
-        ratio_limit = 1.6
+        ratio_limit = 1.4
         
         new_width = self.width() # fix the width
         new_height = self.height()
