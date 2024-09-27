@@ -162,3 +162,65 @@ send: OUTPut?
 response: b'+0\n'
 
 
+# spm3 modbus reg 
+## vcf (flaot)
+
+|---|---|
+|---|---|
+|Vln_a |  0x1000-0x1001|
+|Vln_b |  0x1002-0x1003|
+|Vln_c |  0x1004-0x1005|
+|Vln_avg |  0x1006-0x1007|
+|Vll_ab |  0x1008-0x1009|
+|Vll_bc |  0x100a-0x100b|
+|Vll_ca |  0x100c-0x100d|
+|Vll_avg |  0x100e-0x100f|
+|I_a |  0x1010-0x1011|
+|I_b |  0x1012-0x1013|
+|I_c |  0x1014-0x1015|
+|I_avg |  0x1016-0x1017|
+|Frequency |  0x1018-0x1019|
+
+
+## power resault 
+| Parameter | Hex Address   | Unit |
+|-----------|---------------|------|
+| kW_a      | 0x101A-0x101B | kW   |
+| kW_b      | 0x101C-0x101D | kW   |
+| kW_c      | 0x101E-0x101F | kW   |
+| kW_tot    | 0x1020-0x1021 | kW   |
+| kvar_a    | 0x1022-0x1023 | kvar |
+| kvar_b    | 0x1024-0x1025 | kvar |
+| kvar_c    | 0x1026-0x1027 | kvar |
+| kvar_tot  | 0x1028-0x1029 | kvar |
+| kVA_a     | 0x102A-0x102B | kVA  |
+| kVA_b     | 0x102C-0x102D | kVA  |
+| kVA_c     | 0x102E-0x102F | kVA  |
+| kVA_tot   | 0x1030-0x1031 | kVA  |
+| PF        | 0x1032-0x1033 | -    |
+
+## 
+| Parameter | Hex address   |
+|-----------|---------------|
+| kWh       | 0x1034-0x1035 |
+| kvarh     | 0x1036-0x1037 |
+| kVAh      | 0x1038-0x1039 |
+
+
+## vcf (flaot)
+Vln_a
+Vln_b
+Vln_c
+Vln_avg
+
+Vll_ab 
+Vll_bc
+Vll_ca
+Vll_avg
+
+I_a
+I_b
+I_c
+I_avg
+
+Frequency
