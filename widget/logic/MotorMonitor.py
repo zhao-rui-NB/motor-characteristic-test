@@ -4,38 +4,28 @@ from PyQt6.QtWidgets import *
 import time
 import json
 
+import threading
 from widget.ui.ui_MotorMonitor import ui_MotorMornitor
 from utils.PowerMeterSPM3 import PowerMeterSPM3
-
+from utils.ModbusWorker import ModbusWorker
 
 class MotorMonitor():
     def __init__(self, ui: ui_MotorMornitor):
         super().__init__()
-        
         self.ui = ui
         
-        self.power_meter = PowerMeterSPM3('COM3', 0x0f)
-
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_info)
-        self.timer.start(500)
-
+        self.timer.start(5)
+        
+        self.query_meter_func = None
+        
+    def set_query_meter_func(self, query_meter_func):
+        self.query_meter_func = query_meter_func
+    
     def update_info(self):
-        # print("update_info")
-        data_dict = {}
-
-        
-        vcf = self.power_meter.read_vcf()
-        if vcf:
-            data_dict.update(vcf)
-        
-        power_resault = self.power_meter.read_power_resault()
-        if power_resault:
-            data_dict.update(power_resault)
-        
-        # ui item name to meter parameter map
-        # RST is ABC
-        map_dict = {
+        # ui to meter
+        UI2METER = {
             '電壓_RS': 'Vll_ab',
             '電壓_ST': 'Vll_bc',
             '電壓_TR': 'Vll_ca',
@@ -71,20 +61,59 @@ class MotorMonitor():
             '頻率': 'Frequency',
         }
         
-        for name in self.ui.item_names:
-            if name in map_dict and map_dict[name] in data_dict:
-                self.ui.item_dict[name].set_value(f'{data_dict[map_dict[name]]:.3f}')
+        if self.query_meter_func is None:
+            return
+        
+        meter_data = self.query_meter_func()
+        
+        for name in self.ui.item_names: # update all item in ui
+            if name in UI2METER and UI2METER[name] in meter_data and meter_data[UI2METER[name]] is not None:
+                self.ui.item_dict[name].set_value(f'{meter_data[UI2METER[name]]:.3f}')
             else:
-                self.ui.item_dict[name].set_value("N/A")                
-                
+                self.ui.item_dict[name].set_value("N/A")
                 
 if __name__ == "__main__":  
+    
+    class test_engine(QObject):
+        def __init__(self):
+            super().__init__()
+            
+            self.modbus_worker = ModbusWorker(port='COM3', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5)
+            self.modbus_worker.start()
+            
+            self.powermeter = PowerMeterSPM3(self.modbus_worker, slave_address=0x0F)
+            
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.update_meter_info)
+            self.timer.start(500)
+            
+            self.meter_data = {}
+            
+            
+        def get_meter_data(self):
+            return self.meter_data
+        
+        def _meter_callback(self, data):
+            self.meter_data.update(data)
+                        
+        def update_meter_info(self):
+            # print(self.modbus_worker.get_task_count())
+            self.powermeter.read_vcfp(self._meter_callback)
+                
+    
+    
     app = QApplication([])
+    
+    test = test_engine()
+    
     
     ui = ui_MotorMornitor()
     ctrl = MotorMonitor(ui)
-    ui.show()
+    ctrl.set_query_meter_func(test.get_meter_data)
+
+
     
+    ui.show()
     app.exec()
     
     
