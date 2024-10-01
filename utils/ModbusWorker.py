@@ -21,6 +21,8 @@ class ModbusWorker:
         self.task_queue = Queue()
         self.running = False
         self.worker_thread = None
+        
+        self.start()
 
     def start(self):
         if not self.running:
@@ -87,7 +89,18 @@ class ModbusWorker:
                 print(f"[ModbusWorker] write register error: {result}")
         except ModbusException as e:
             print(f"[ModbusWorker] Modbus exception: {e}")
-
+    
+    def _write_registers(self, address, values, slave):
+        try:
+            result = self.client.write_registers(address=address, values=values, slave=slave)
+            if not result.isError():
+                return True
+            else:
+                print(f"[ModbusWorker] write registers error: {result}")
+        except ModbusException as e:
+            print(f"[ModbusWorker] Modbus exception: {e}")  
+    
+    
     def read_input_registers_threaded(self, address, count, slave, callback):
         self._add_task(self._read_input_registers, (address, count, slave), callback)
         
@@ -96,6 +109,9 @@ class ModbusWorker:
         
     def write_register_threaded(self, address, value, slave, callback):
         self._add_task(self._write_register, (address, value, slave), callback)
+        
+    def write_registers_threaded(self, address, values, slave, callback):
+        self._add_task(self._write_registers, (address, values, slave), callback)
     
 
 

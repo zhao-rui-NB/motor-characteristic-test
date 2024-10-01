@@ -1,6 +1,6 @@
 # motor-characteristic-test
 
-## 功能
+## 軟體功能
 
 ### 主頁
 ```
@@ -43,7 +43,7 @@ exit結束
 ```
 
 
-## 表格
+### 參數表格
 ```
 試驗日期
 印表日期
@@ -57,39 +57,9 @@ exit結束
 頻率
 極數
 迴轉數
-
-
-
 ```
 
-## 監視器
-```
-[01] 電壓_RS
-[02] 電壓_ST
-[03] 電壓_TR
-[04] 平均電壓
-[05] 電流_R
-[06] 電流_S
-[07] 電流_T
-[08] 平均電流
-[09] 功率_RS
-[13] 功率_TS
-[17] 輸入功率
-[21] 轉速
-[10] 乏功率_RS
-[14] 乏功率_TS
-[18] 輸入乏功率
-[22] 轉矩
-[11] 視在功率_RS
-[15] 視在功率_TS
-[19] 輸入視在功率
-[23] 輸出功率
-[12] 功率因數_RS
-[16] 功率因數_TS
-[20] 平均功率因數
-[24] 效率
 
-```
 
 
 
@@ -101,17 +71,7 @@ exit結束
 * 多command若沒`:`開頭,延續使用第一指令node
 
 PROGRAMMING MANUAL: [PDF](https://www.gwinstek.com/en-global/products/downloadSeriesDownNew/8395/562)
-```
-Setting the Voltage Range → from page 61
-Setting the Voltage Limit → from page 62
-Setting the Output Voltage → from page 63
-Setting the Frequency Limit → page 65
-Setting the Output Frequency → page 66
-Setting the Peak Current Limit → from page 67
-Setting the Current RMS Level → from page 69
-Clearing the Alarm → from page 75
-Turning the Output on/off → from page 79
-```
+
 ### command 
 
 | 命令 | 用途 |
@@ -130,17 +90,21 @@ Turning the Output on/off → from page 79
 | `OUTPut` | 控制/查詢輸出開關狀態 |
 | `SYSTem:REBoot` | 重啟系統 |
 
-### output
+#### output
+```
 OUTPut 0
 OUTPut 1
+```
 
-### f a v 
+#### f a v 
+```
 'VOLTage 75',
 'FREQ 60',
 'CURRent:LIMit:RMS 3.5'
+```
 
-
-### read 
+#### read 
+```
 send: *IDN?
 response: b'GWINSTEK,APS-7100,GEQ120257,01.10.20151016\n'
 -------------------
@@ -160,10 +124,21 @@ response: b'+3.5000\n'
 -------------------
 send: OUTPut?
 response: b'+0\n'
+```
 
+## spm3 可調電源
 
-# spm3 modbus reg 
-## vcf (flaot)
+User guide: [PDF](https://www.cleswitch.com.tw/uploads/files/1666929988.pdf)
+
+```
+Modbus RTU
+IEEE 754 Format
+03 Read Holding RegistersRead the content of read/write location   
+04 Read Input Registers Read the contents of read only location16 Pre-set Multiple Registers Set the contents of read/write location
+```
+
+### modbus reg 
+#### vcf
 
 |---|---|
 |---|---|
@@ -182,7 +157,7 @@ response: b'+0\n'
 |Frequency |  0x1018-0x1019|
 
 
-## power resault 
+#### power resault 
 | Parameter | Hex Address   | Unit |
 |-----------|---------------|------|
 | kW_a      | 0x101A-0x101B | kW   |
@@ -199,28 +174,40 @@ response: b'+0\n'
 | kVA_tot   | 0x1030-0x1031 | kVA  |
 | PF        | 0x1032-0x1033 | -    |
 
-## 
-| Parameter | Hex address   |
-|-----------|---------------|
-| kWh       | 0x1034-0x1035 |
-| kvarh     | 0x1036-0x1037 |
-| kVAh      | 0x1038-0x1039 |
 
 
-## vcf (flaot)
-Vln_a
-Vln_b
-Vln_c
-Vln_avg
 
-Vll_ab 
-Vll_bc
-Vll_ca
-Vll_avg
 
-I_a
-I_b
-I_c
-I_avg
 
-Frequency
+
+## 中盛数码管显示屏
+
+# 中盛数码管显示屏寄存器功能列表
+
+| 地址 | 功能描述 | 备注 |
+|------|----------|------|
+| 0-5  | 控制各位数码管显示内容 | 每个寄存器对应一位数码管,存储ASCII码值 |
+| 6    | 数据格式 | 高字节高4位: 0正/1负; 低4位: 小数点位置; 低字节: 数据最高8位 |
+| 7    | 显示数据 | 与寄存器6配合使用,存储数据的中间8位和最低8位 |
+| 8    | 闪烁控制 | 每位对应一个数码管,1闪烁0不闪烁,掉电不保存 |
+| 9    | 显示内容保存 | 0不保存,1保存所有数码管显示内容,掉电保存 |
+| 10   | 模块485总线地址 | 范围1~254,0是广播地址,掉电保存 |
+| 11   | 波特率设置 | 0:4800, 1:9600, 2:14400, 3:19200, 4:38400, 5:56000, 6:57600, 7:115200, 掉电保存 |
+| 12   | 停止位设置 | 0:1位, 1:1.5位, 2:2位, 掉电保存 |
+| 13   | 校验位设置 | 0:无校验, 1:奇校验, 2:偶校验, 掉电保存 |
+| 14   | 亮度调节 | 范围0~7,0最暗7最亮,掉电保存 |
+| 15   | 上电初始显示模式设置 | 0:显示"0", 1:显示485地址, 2:显示保存的数据, 掉电保存 |
+
+注意:
+1. 寄存器6和7需要配合使用来显示数值。
+2. 大多数设置参数在掉电后会保存,但闪烁控制(寄存器8)不会。
+3. 通信参数的更改(如波特率、停止位、校验位)在掉电保存后生效。
+
+
+寄存器6和7 (32位总长)
+
+[31:28] | [27:24] | [23:16]  | [15:8]   | [7:0]
+--------|---------|----------|----------|---------
+  符号   | 小数点  | 数据高位 | 数据中位 | 数据低位
+
+
