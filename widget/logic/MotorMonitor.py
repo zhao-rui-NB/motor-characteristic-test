@@ -10,18 +10,16 @@ from utils.PowerMeterSPM3 import PowerMeterSPM3
 from utils.ModbusWorker import ModbusWorker
 
 class MotorMonitor():
-    def __init__(self, ui: ui_MotorMornitor, power_meter: PowerMeterSPM3):
+    def __init__(self, ui: ui_MotorMornitor):
         super().__init__()
         self.ui = ui
-        self.meter = power_meter
-        self.meter_vcfp = {}
         
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.update_power_meter) 
-        self.timer.start(500)
+        # self.timer = QTimer()
+        # self.timer.timeout.connect(self.update_power_meter) 
     
-    def _meter_vcfp_callback(self, data):
-        self.meter_vcfp.update(data)
+        # self.timer.start(500)
+    
+    def update_power_meter_data(self, data):
         
         name_pairs = [
             ('電壓_RS', 'Vll_ab'),
@@ -64,32 +62,24 @@ class MotorMonitor():
             else:
                 self.ui.item_dict[ui].set_value("N/A")        
     
-    def update_power_meter(self):
-        task_count = self.meter.worker.get_task_count()
-        if task_count <5:
-            self.meter.read_vcfp(self._meter_vcfp_callback)
-        else:
-            print(f'[MotorMonitor] power meter worker too busy, task count: {task_count}, skip this round')
 
-    def get_meter_vcfp_dict(self):
-        return self.meter_vcfp
 
     
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
+    from engine.DeviceManager import DeviceManager
+    from engine.DataCollector import DataCollector
+    
     app = QApplication([])
-    meter = PowerMeterSPM3(ModbusWorker(port='COM3', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5), slave_address=0x0F)
     
     ui = ui_MotorMornitor()
-    ctrl = MotorMonitor(ui, meter)
+    ctrl = MotorMonitor(ui)
     
-    # def print_data():
-    #     d = ctrl.get_meter_vcfp_dict()
-    #     print(json.dumps(d, indent=4))
-    # timer = QTimer()
-    # timer.timeout.connect(print_data)
-    # timer.start(1000)
-    
+    device_manager = DeviceManager()
+    device_manager.init_power_meter("COM3", 0x0F)
+    data_collector = DataCollector(device_manager)
+    data_collector.register_power_meter_data_callback(ctrl.update_power_meter_data)
+    data_collector.start()
     
     ui.show()
     app.exec()

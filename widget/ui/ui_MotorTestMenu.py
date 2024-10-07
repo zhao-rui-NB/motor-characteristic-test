@@ -70,18 +70,13 @@ class Ui_MotorTestMenu(QScrollArea):
         
         self.btn_PrintResult = QPushButton("測試結果列印")
         self.main_layout.addWidget(self.btn_PrintResult)
+        
+        self.main_layout.addStretch(1)
 
     
     
     def create_motor_type_menu(self):
         self.setWindowTitle("高雄科技大學電機系 - 馬達特性測試系統")
-        
-        
-        
-        
-        
-        
-        
         
         main_layout = QVBoxLayout(self)
         

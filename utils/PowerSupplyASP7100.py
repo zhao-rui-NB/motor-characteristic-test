@@ -64,16 +64,14 @@ class PowerSupplyASP7100:
                 return
             
             success, response = result
-            if success:
-                if response:
-                    items = self._split_response(response)
-                    if type_list:
-                        items = self._cvt_response_type(items, type_list)
-                    callback(items)
-                else:
-                    callback(True)
+            
+            items = self._split_response(response) # if none, return None
+            items = self._cvt_response_type(items, type_list)
+            
+            if items is None and type_list:
+                callback([None for _ in type_list])
             else:
-                callback(False)
+                callback(items)
 
         self.worker.send_command_threaded(cmd, callback=internal_callback)
 
@@ -126,8 +124,8 @@ class PowerSupplyASP7100:
         '''
         self._generic_command("SOUR:READ?", callback, type_list=[float, float, float, float, float, float])
 
-    def stop(self):
-        self.worker.stop()
+
+
 
 if __name__ == "__main__":
     import time

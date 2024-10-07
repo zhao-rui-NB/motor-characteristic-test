@@ -42,6 +42,10 @@ class ModbusWorker:
         self.client.close()
         print(f"[ModbusWorker] disconnected from {self.client.comm_params.host}")
 
+    # def __del__(self):
+    #     self.stop()
+    #     # print(f"[ModbusWorker] deleted")
+    
     def _add_task(self, function , args, callback):
         if self.get_task_count() > 10:
             print(f"[ModbusWorker] too heavy load, task queue size: {self.get_task_count()}")

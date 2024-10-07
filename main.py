@@ -2,154 +2,56 @@ from PyQt6.QtGui import *
 from PyQt6.QtCore import *
 from PyQt6.QtWidgets import *
 
+from ui_main import ui_main
 
-from widget.ui.ui_PowerSupplyControlPanel import Ui_PowerSupplyControlPanel
-# from widget.ui.ui_MotorTestSystem import Ui_MotorTestSystem
-
-from widget.ui.ui_MotorTestMenu import Ui_MotorTestMenu
-
-from widget.ui.ui_MotorMonitor import ui_MotorMornitor
-
-from widget.ui.ui_MotorParameter import Ui_MotorParameter
+from widget.logic.MotorMonitor import MotorMonitor
+from widget.logic.PowerSupplyControlPanel import PowerSupplyControlPanel
 from widget.logic.MotorParameter import MotorParameter
 
+from engine.DeviceManager import DeviceManager
+from engine.DataCollector import DataCollector
 
-class MainWindow(QMainWindow):
+class MotorTestSysetm:
     def __init__(self):
-        super().__init__()
+        self.ui = ui_main()
+        self.ui.setGeometry(0, 0, 1400, 900)
+        self.ui.show()
         
-
+        self.device_manager = DeviceManager()
+        # self.device_manager.init_power_meter("COM3", 0x0F)
+        # self.device_manager.init_power_supply("127.0.0.1", 2268)
         
-        self.setWindowTitle("Motor Test System")
+        self.data_collector = DataCollector(self.device_manager)
         
-        
-        # power supply control panel dock
-        self.power_dock = QDockWidget("PowerSupplyControlPanel", self)
-        self.power_ui = Ui_PowerSupplyControlPanel()
-        self.power_dock.setWidget(self.power_ui)
-        self.power_dock.visibilityChanged.connect(self.update_menu_display_status)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.power_dock, Qt.Orientation.Vertical)
-        
-        
-        # motor test system dock 
-        # self.motor_menu_dock = QDockWidget("MotorTest", self)
-        # self.motor_ui = Ui_MotorTestSystem()
-        # self.motor_menu_dock.setWidget(self.motor_ui)
-        # self.motor_menu_dock.visibilityChanged.connect(self.update_menu_display_status)
-        # self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.motor_menu_dock)
-        
-        # motor test menu dock
-        self.motor_menu_dock = QDockWidget("MotorTestMenu", self)
-        self.motor_menu_ui = Ui_MotorTestMenu()
-        self.motor_menu_dock.setWidget(self.motor_menu_ui)
-        self.motor_menu_dock.visibilityChanged.connect(self.update_menu_display_status)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.motor_menu_dock)
-        
-        # motor monitor dock
-        self.motor_monitor_dock = QDockWidget("MotorMonitor", self)
-        self.motor_monitor_ui = ui_MotorMornitor()
-        self.motor_monitor_dock.setWidget(self.motor_monitor_ui)
-        self.motor_monitor_dock.visibilityChanged.connect(self.update_menu_display_status)
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.motor_monitor_dock)
+        self.motor_monitor = MotorMonitor(self.ui.motor_monitor_ui)
+        self.power_supply_control_panel = PowerSupplyControlPanel(self.ui.power_ui, self.device_manager)
+        self.motor_parameter = MotorParameter(self.ui.motor_parameter_ui)
         
         
+        self.data_collector.register_power_meter_data_callback(self.motor_monitor.update_power_meter_data)
+        self.data_collector.register_power_supply_data_callback(self.power_supply_control_panel.update_power_supply_info)
+        # self.data_collector.start()
         
-        
-        self.main_widget = QWidget()
-        self.setCentralWidget(self.main_widget)
-        self.mainlayout = QVBoxLayout(self.main_widget)
-        
-        
-        # label
-        label = QLabel("高雄科技大學電機系\n馬達特性測試系統")
-        label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.mainlayout.addWidget(label)
-        
-        # motor parameter edit
-        self.motor_parameter_ui = Ui_MotorParameter()
-        self.motor_parameter = MotorParameter(self.motor_parameter_ui)
-        self.mainlayout.addWidget(self.motor_parameter_ui)
-
-        
-        
-        
-        self.setup_menu_bar()
+        # self.
+        self.ui.connection_menu.triggered.connect(self.setting_device)
     
-    def setup_menu_bar(self):
+    def setting_device(self):
+        resault = self.ui.ConnectionDialog.exec()
+        if resault == QDialog.DialogCode.Accepted:
+            self.data_collector.stop()
+            
+            settings = self.ui.ConnectionDialog.get_settings()
+            self.device_manager.init_power_meter(settings["PowerMeter"]["COMPort"], settings["PowerMeter"]["SlaveAddress"])
+            self.device_manager.init_power_supply(settings["PowerSupply"]["IPAddress"], settings["PowerSupply"]["Port"])
+            
+            self.data_collector.start()
         
-        # menu bar 
-        self.menu_bar = self.menuBar()
-        
-        # set font size 20
-        font = QFont()
-        font.setPointSize(18)
-        self.menu_bar.setFont(font)
-        
-        ## file menu
-        self.file_menu = self.menu_bar.addMenu("File")
-        self.file_menu.setFont(font)
-        self.file_new = self.file_menu.addAction("New")
-        self.file_open = self.file_menu.addAction("Load")
-        self.file_save = self.file_menu.addAction("Save")
-        self.file_save_as = self.file_menu.addAction("Save As")
-        
-        self.file_new.triggered.connect(self.motor_parameter.new_file)
-        self.file_open.triggered.connect(self.motor_parameter.load_from_file)
-        self.file_save.triggered.connect(self.motor_parameter.save_file)
-        self.file_save_as.triggered.connect(self.motor_parameter.save_as_file)
-        
-        
-
-        ## display menu
-        self.display_menu = self.menu_bar.addMenu("Display")
-
-        self.power_supply_action = QAction("power_supply")
-        self.power_supply_action.setCheckable(True)
-        self.power_supply_action.triggered.connect(self.on_power_supply_action)
-        self.display_menu.addAction(self.power_supply_action)
-        
-        self.motor_test_system_action = QAction("MotorTestSystem")
-        self.motor_test_system_action.setCheckable(True)
-        self.motor_test_system_action.triggered.connect(self.on_motor_test_system_action)
-        self.display_menu.addAction(self.motor_test_system_action)
-        
-        self.motor_monitor_action = QAction("MotorMonitor")
-        self.motor_monitor_action.setCheckable(True)
-        self.motor_monitor_action.triggered.connect(self.motor_monitor_dock.setVisible)
-        self.display_menu.addAction(self.motor_monitor_action)
-
-    
-        
-        ## about menu
-        self.about_menu = self.menu_bar.addMenu("About")
-        
-    
-    
-    def update_menu_display_status(self):
-        self.power_supply_action.setChecked(self.power_dock.isVisible())
-        self.motor_test_system_action.setChecked(self.motor_menu_dock.isVisible())
-        self.motor_monitor_action.setChecked(self.motor_monitor_dock.isVisible())
-
-
-    
-    def on_power_supply_action(self, checked):
-        self.power_dock.setVisible(checked)
-
-    def on_motor_test_system_action(self, checked):
-        self.motor_menu_dock.setVisible(checked)
-
+    def __del__(self):
+        self.device_manager.release_resources()
 
 
 if __name__ == '__main__':
     app = QApplication([])
     app.setStyle('Fusion')
-    window = MainWindow()
-    window.show()
-    
-    # window.ui.show()
-    
-    app.exec()    
-    
-    
-    
+    window = MotorTestSysetm()
+    app.exec()

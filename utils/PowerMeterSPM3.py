@@ -53,7 +53,7 @@ class PowerMeterSPM3:
             callback(data)
 
         self.worker.read_input_registers_threaded(0x1034, len(keys)*2, self.slave_address, process_result)
-
+        
 if __name__ == "__main__":
     def print_callback(result):
         if result:
