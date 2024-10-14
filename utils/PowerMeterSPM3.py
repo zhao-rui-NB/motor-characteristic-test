@@ -24,8 +24,11 @@ class PowerMeterSPM3:
         def process_result(result):
             if result:
                 data = {k: ModbusWorker.registers_to_float(result[i*2:i*2+2]) for i, k in enumerate(keys)}
+                data.update({k.replace('k','') : v*1000 if k.startswith('k') else v for k, v in data.items()})
+                
             else:
                 data = {k: None for k in keys}
+                data.update({k.replace('k','') : None for k in data.keys()})
             callback(data)
 
         self.worker.read_input_registers_threaded(0x101A, len(keys)*2, self.slave_address, process_result)
