@@ -47,7 +47,7 @@ class ModbusWorker:
     #     # print(f"[ModbusWorker] deleted")
     
     def _add_task(self, function , args, callback):
-        if self.get_task_count() > 10:
+        if self.get_task_count() > 30:
             print(f"[ModbusWorker] too heavy load, task queue size: {self.get_task_count()}")
         self.task_queue.put((function, args, callback))
 

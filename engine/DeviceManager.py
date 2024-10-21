@@ -4,6 +4,7 @@ import time
 from utils.PowerMeterSPM3 import PowerMeterSPM3
 from utils.ModbusWorker import ModbusWorker
 from utils.PowerSupplyASP7100 import PowerSupplyASP7100
+from utils.SegmentDisplay import SegmentDisplay
 
 class DeviceManager:
     
@@ -14,22 +15,50 @@ class DeviceManager:
 
         self.power_supply: PowerSupplyASP7100 = None
         self.power_meter: PowerMeterSPM3 = None 
+        self.segment_display_dict: dict[int, SegmentDisplay] = {}
     
 
     def init_power_supply(self, ip, port):
+        if not ip or not port:
+            print(f'[DeviceManager] Warning: Power Supply ip or port is empty')
+            return False
         self.power_supply = PowerSupplyASP7100(ip, port)
+        print(f'[DeviceManager] Power Supply init, ip: {ip}, port: {port}')
         return self.power_supply.worker.connected.is_set()
 
     def init_power_meter(self,com_port:str, slave_address, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
+        if not com_port:
+            print(f'[DeviceManager] Warning: Power Meter com_port is empty')
+            return False
+        
         com_port =  com_port.upper()
         
         if com_port not in self.serial_port_workers: # first make worker device will set parameters for the worker 
             self.serial_port_workers[com_port] = ModbusWorker(com_port, baudrate, parity, stopbits, bytesize, timeout)
         
         self.power_meter = PowerMeterSPM3(self.serial_port_workers[com_port], slave_address)
-        # return check if the device is connected
-        
+
+        print(f'[DeviceManager] Power Meter init, com_port: {com_port}, slave_address: {slave_address}')        
         return self.power_meter.worker.client.is_socket_open()
+    
+    def init_segment_displays(self, com_port:str, addresses:list, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
+        '''
+        if the com_port exists, all the parameters for the modbus worker will be set by the first device.
+        addresses: list of addresses for the segment display
+        '''
+        com_port = com_port.upper()
+        
+        if com_port not in self.serial_port_workers:
+            self.serial_port_workers[com_port] = ModbusWorker(com_port, baudrate, parity, stopbits, bytesize, timeout)
+            
+        for address in addresses:
+            if address not in self.segment_display_dict:
+                self.segment_display_dict[address] = SegmentDisplay(self.serial_port_workers[com_port], address)             
+                print(f'[DeviceManager] Segment Display init, com_port: {com_port}, address: {address}')
+            else:
+                print(f'[DeviceManager] Warning: Segment Display already exists, com_port: {com_port}, address: {address}')
+               
+        
     
     # release resources
     def release_resources(self):

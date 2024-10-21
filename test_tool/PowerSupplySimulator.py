@@ -131,26 +131,6 @@ class SimPowerSupply:
         
         
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class SocketServer:
     def __init__(self, host='127.0.0.1', port=2268):
         self.host = host
@@ -236,6 +216,7 @@ def run_server():
                 except Exception as e:
                     print("Error handling client:", e)
                     break
+                
 
             conn.close()
             print("Client disconnected:", client_addr)
@@ -264,11 +245,12 @@ def run_server_select():
     power_supply = SimPowerSupply()
     running = True
     
-    inputs = [s]
+    inputs: list[socket.socket] = [s]
     outputs = []
     
     while running:
-        readable, writable, exceptional = select.select(inputs, [], [])
+        readable: list[socket.socket]
+        readable, writable, exceptional = select.select(inputs, [], [], 0.5)
         
         for r in readable:
             if r is s:
@@ -278,7 +260,13 @@ def run_server_select():
                 inputs.append(conn)
                 outputs.append(conn)
             else:
-                data = r.recv(1024)
+                try:
+                    data = r.recv(1024)
+                except socket.error as e:
+                    print("Client connection error:", e)
+                    data = None
+                
+                    
                 if data:
                     message = data.decode().strip()
                     print("Received from client:", message)
@@ -289,7 +277,6 @@ def run_server_select():
                     except ValueError as e:
                         print("Error handling client:", e)
                         power_resp = None
-
                     
                     if power_resp:
                         print("Power supply response:", power_resp)
@@ -301,6 +288,7 @@ def run_server_select():
                     inputs.remove(r)
                     outputs.remove(r)
                     r.close()
+                    
         
         
 

@@ -11,11 +11,13 @@ class DataCollector:
         self.running = False
         
         # measurement data
+
         self.power_meter_data = {}
         self.power_meter_data_update_thread = None
         self.power_meter_data_timestamp = 0
         self.power_meter_data_callback = None
         
+        # self.power_supply_data_keys = ['voltage', 'frequency', 'current_limit', 'output', 'measure_voltage', 'measure_current', 'measure_frequency', 'measure_power', 'measure_VA', 'measure_ipeak']
         self.power_supply_data = {}
         self.power_supply_data_update_thread = None
         self.power_supply_data_timestamp = 0
@@ -33,14 +35,20 @@ class DataCollector:
             return
         self.running = True
         
-        # start power meter data update thread
-        self.power_meter_data_update_thread = Thread(target=self._update_power_meter_data_thread, daemon=True)
-        self.power_meter_data_update_thread.start()
+        if self.device_manager.power_meter:
+            # start power meter data update thread
+            self.power_meter_data_update_thread = Thread(target=self._update_power_meter_data_thread, daemon=True)
+            self.power_meter_data_update_thread.start()
+        else:
+            print('[DataCollector] power meter not initialized, skip power meter data collection')
         
-        # start power supply data update thread
-        self.power_supply_data_update_thread = Thread(target=self._update_power_supply_data_thread, daemon=True)
-        self.power_supply_data_update_thread.start()
-    
+        if self.device_manager.power_supply:
+            # start power supply data update thread
+            self.power_supply_data_update_thread = Thread(target=self._update_power_supply_data_thread, daemon=True)
+            self.power_supply_data_update_thread.start()
+        else:
+            print('[DataCollector] power supply not initialized, skip power supply data collection')
+            
     def stop(self):
         self.running = False
         if self.power_meter_data_update_thread:
@@ -50,7 +58,14 @@ class DataCollector:
     
     
     #### Power Meter Data ####
-    def _meter_vcfp_callback(self, data):
+    def _meter_vcfp_callback(self, data: dict[str, float]):
+        # add convert kW to W
+        without_k = {}
+        for key, value in data.items():
+            if key.startswith('k'):
+                without_k[key.replace('k', '')] = value * 1000 if value is not None else None
+        data.update(without_k)
+        
         self.power_meter_data.update(data)
         try:
             if self.power_meter_data_callback:
@@ -97,6 +112,7 @@ class DataCollector:
                 print(f'[DataCollector] power supply worker too busy, task count: {self.device_manager.power_supply.worker.get_task_count()}, skip this round')
             
             time.sleep(0.5)
+            
 
 
 

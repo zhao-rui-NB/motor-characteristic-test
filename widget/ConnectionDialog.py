@@ -1,9 +1,10 @@
-from PyQt6.QtCore import QRect
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
 from PyQt6.QtWidgets import *
 
 import json
+
+from .SegmentDisplayAddressDialog import SegmentDisplayAddressDialog
 
 class ConnectionDialog(QDialog):
     def __init__(self, parent=None):
@@ -23,6 +24,8 @@ class ConnectionDialog(QDialog):
         self.setGeometry(x, y, w, h)
         
         self.initUI()
+        self.segment_display_dialog: SegmentDisplayAddressDialog = SegmentDisplayAddressDialog()
+
         
         self.base_font = QFont()
         self.base_font.setPointSize(20)
@@ -38,9 +41,7 @@ class ConnectionDialog(QDialog):
         self.set_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
         
-        
-        
-        self.load_settings()
+        self.config_display_address_button.clicked.connect(self.config_display_address)
         
         self.apply_style()
         
@@ -88,6 +89,18 @@ class ConnectionDialog(QDialog):
         self.ps_port.setValidator(QIntValidator())
         self.ps_layout.addRow(QLabel("Port:"), self.ps_port)
         
+        ## SegmentDisplay Group
+        self.sd_group = QGroupBox("Segment Display")
+        self.sd_layout = QFormLayout(self.sd_group)
+        self.sd_layout.setSpacing(40)
+        self.main_layout.addWidget(self.sd_group)
+        
+        self.sd_com_port = QLineEdit()
+        self.sd_com_port.setPlaceholderText("COMx")
+        self.sd_layout.addRow(QLabel("COM Port:"), self.sd_com_port)
+        self.config_display_address_button = QPushButton("Configure Display Addresses")
+        self.sd_layout.addRow(self.config_display_address_button)
+        
         ## Buttons
         button_layout = QHBoxLayout()
         self.cancel_button = QPushButton("Cancel")
@@ -113,7 +126,7 @@ class ConnectionDialog(QDialog):
             
             
             
-            QPushButton {
+            QPushButton#set_button, QPushButton#cancel_button {
                 color: white;
                 padding: 10px 20px;
                 border-radius: 15px;
@@ -135,7 +148,8 @@ class ConnectionDialog(QDialog):
         self.cancel_button.setObjectName("cancel_button")
         self.set_button.setObjectName("set_button")
         
-
+    def config_display_address(self):
+        self.segment_display_dialog.exec()
 
     def resizeEvent(self, event: QResizeEvent):
 
@@ -155,31 +169,27 @@ class ConnectionDialog(QDialog):
             child.setFont(self.font())
     
     def save_settings(self):
-        # check the data
-        settings = {
-            "PowerMeter": {
-                "COMPort": self.pm_com_port.text(),
-                "SlaveAddress": self.pm_slave_address.text()
-            },
-            "PowerSupply": {
-                "IPAddress": self.ps_ip.text(),
-                "Port": self.ps_port.text()
-            }
-        }
-        
+        settings = self.get_settings(cvt_to_int=False)
         with open("settings.json", "w") as f:
             json.dump(settings, f, indent=4)
     
     def load_settings(self):
         try:
             with open("settings.json", "r") as f:
-                settings = json.load(f)
+                settings: dict = json.load(f)
             self.pm_com_port.setText(settings["PowerMeter"]["COMPort"])
-            self.pm_slave_address.setText(settings["PowerMeter"]["SlaveAddress"])
+            self.pm_slave_address.setText(settings["PowerMeter"]["SlaveAddress"])          
+            
             self.ps_ip.setText(settings["PowerSupply"]["IPAddress"])
             self.ps_port.setText(settings["PowerSupply"]["Port"])
-        except:
+            
+            display_settings: dict = settings.get("SegmentDisplay", {})
+            self.sd_com_port.setText(display_settings.get("COMPort", ""))
+            self.segment_display_dialog.load_settings(display_settings.get("Addresses", {}))
+
+        except FileNotFoundError as e:
             self.set_to_default()
+            print(e)
                         
     def set_to_default(self):
         self.pm_com_port.setText("COM3")
@@ -187,17 +197,30 @@ class ConnectionDialog(QDialog):
         self.ps_ip.setText("127.0.0.1")
         self.ps_port.setText("2268")
         
-    def get_settings(self):
+    def get_settings(self, cvt_to_int=True):
+        '''
+        when save and load to json config file, will store raw string from QLineEdit
+        when get dialog return value, will convert to int, cvt_to_int=True
+        '''
         js = {
             "PowerMeter": {
                 "COMPort": self.pm_com_port.text(),
-                "SlaveAddress": int(self.pm_slave_address.text(), 16)
+                "SlaveAddress": self.pm_slave_address.text()
             },
             "PowerSupply": {
                 "IPAddress": self.ps_ip.text(),
-                "Port": int(self.ps_port.text())
+                "Port": self.ps_port.text()
+            },
+            "SegmentDisplay": {
+                "COMPort": self.sd_com_port.text(),
+                "Addresses": self.segment_display_dialog.get_settings(cvt_to_int=cvt_to_int)
             }
+            
         }
+        
+        if cvt_to_int:
+            js["PowerMeter"]["SlaveAddress"] = int(js["PowerMeter"]["SlaveAddress"], 16)
+            js["PowerSupply"]["Port"] = int(js["PowerSupply"]["Port"])
         
         return js
             
@@ -206,15 +229,12 @@ class ConnectionDialog(QDialog):
         super().accept()
         
         
-        
-        
-        
-        
 if __name__ == '__main__':
     app = QApplication([])
     dialog = ConnectionDialog()
     if dialog.exec() == QDialog.DialogCode.Accepted:
         print("Accepted")
-        print(dialog.get_settings())
+        print('no int:', dialog.get_settings(cvt_to_int=False))
+        print('int:', dialog.get_settings(cvt_to_int=True))
     else:
         print("Rejected")

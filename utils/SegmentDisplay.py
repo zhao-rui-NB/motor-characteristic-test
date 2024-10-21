@@ -1,5 +1,5 @@
 
-from ModbusWorker import ModbusWorker
+from .ModbusWorker import ModbusWorker
 
 from typing import Union
 
@@ -67,8 +67,8 @@ class SegmentDisplay:
 if __name__ == "__main__":
     import time 
     
-    modbus_worker = ModbusWorker(port='COM3')  # 请根据实际情况修改端口
-    display = SegmentDisplay(modbus_worker, slave_address=0x64)
+    modbus_worker = ModbusWorker(port='COM70')  # 请根据实际情况修改端口
+    display = SegmentDisplay(modbus_worker, slave_address=0x69)
 
     # 显示数字
     # display.set_number(67.89)
