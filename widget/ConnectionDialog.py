@@ -58,7 +58,7 @@ class ConnectionDialog(QDialog):
         ## Power Meter Group
         self.pm_group = QGroupBox("Power Meter")
         self.pm_layout = QFormLayout(self.pm_group)
-        self.pm_layout.setSpacing(40)
+        # self.pm_layout.setSpacing(40)
         self.main_layout.addWidget(self.pm_group)        
         
         self.pm_com_port = QLineEdit()
@@ -75,7 +75,7 @@ class ConnectionDialog(QDialog):
         ## Power Supply Group
         self.ps_group = QGroupBox("Power Supply")
         self.ps_layout = QFormLayout(self.ps_group)
-        self.ps_layout.setSpacing(40)
+        # self.ps_layout.setSpacing(40)
         self.main_layout.addWidget(self.ps_group)
         
         self.ps_ip = QLineEdit()
@@ -92,7 +92,7 @@ class ConnectionDialog(QDialog):
         ## SegmentDisplay Group
         self.sd_group = QGroupBox("Segment Display")
         self.sd_layout = QFormLayout(self.sd_group)
-        self.sd_layout.setSpacing(40)
+        # self.sd_layout.setSpacing(40)
         self.main_layout.addWidget(self.sd_group)
         
         self.sd_com_port = QLineEdit()
@@ -100,6 +100,24 @@ class ConnectionDialog(QDialog):
         self.sd_layout.addRow(QLabel("COM Port:"), self.sd_com_port)
         self.config_display_address_button = QPushButton("Configure Display Addresses")
         self.sd_layout.addRow(self.config_display_address_button)
+        
+        ## TorqueSensor Group
+        self.ts_group = QGroupBox("Torque Sensor")
+        self.ts_layout = QFormLayout(self.ts_group)
+        # self.ts_layout.setSpacing(40)
+        self.main_layout.addWidget(self.ts_group)
+        
+        self.ts_com_port = QLineEdit()
+        self.ts_com_port.setPlaceholderText("COMx")
+        self.ts_layout.addRow(QLabel("COM Port:"), self.ts_com_port)
+        
+        self.ts_slave_address = QLineEdit()
+        self.ts_slave_address.setPlaceholderText("0x")
+        hex_validator = QRegularExpressionValidator(QRegularExpression("^0x[0-9A-Fa-f]{1,2}$"))
+        self.ts_slave_address.setValidator(hex_validator)
+        self.ts_layout.addRow(QLabel("Slave Address:"), self.ts_slave_address)
+        
+        
         
         ## Buttons
         button_layout = QHBoxLayout()
@@ -114,7 +132,7 @@ class ConnectionDialog(QDialog):
         self.setStyleSheet("""
 
             QLineEdit {
-                border: 5px solid #57756e;
+                border: 3px solid #57756e;
                 padding: 0px 10px;
                 border-radius: 15px;
                 background-color: #1a1a1a;
@@ -122,7 +140,7 @@ class ConnectionDialog(QDialog):
             }
             
             QLineEdit:focus { border-color: #5a49ff; background-color: #711b79; }
-            QLineEdit:hover { border-color: #5a49ff; border-width: 8px; }
+            QLineEdit:hover { border-color: #5a49ff; border-width: 5px; }
             
             
             
@@ -153,7 +171,7 @@ class ConnectionDialog(QDialog):
 
     def resizeEvent(self, event: QResizeEvent):
 
-        font_size = max(10, int(event.size().height() * 0.04))
+        font_size = max(10, int(event.size().height() * 0.03))
         self.base_font.setPointSize(font_size)
         self.setFont(self.base_font)
         

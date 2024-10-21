@@ -35,7 +35,33 @@ class MotorMonitor():
             else:
                 self.ui.item_dict[ui].set_value("N/A")        
     
-
+    def update_torque_sensor_data(self, data):
+        '''
+        this function is called by DataCollector when new data is available
+        '''
+        name_pairs = [
+            ('轉矩', 'torque'),('轉速', 'speed'),('輸出功率', 'power'),
+        ]
+        
+        for ui, meter in name_pairs:
+            if data[meter] is not None:
+                self.ui.item_dict[ui].set_value(f'{data[meter]}')
+            else:
+                self.ui.item_dict[ui].set_value("N/A")
+                
+    def update_calculated_data(self, data):
+        '''
+        this function is called by DataCollector when new data is available
+        '''
+        name_pairs = [
+            ('效率', 'efficiency'),
+        ]
+        
+        for ui, meter in name_pairs:
+            if data[meter] is not None:
+                self.ui.item_dict[ui].set_value(f'{data[meter]:.3f}')
+            else:
+                self.ui.item_dict[ui].set_value("N/A")
 
     
 

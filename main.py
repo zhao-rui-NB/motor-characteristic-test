@@ -30,6 +30,9 @@ class MotorTestSysetm:
         
         self.data_collector.register_power_meter_data_callback(self.motor_monitor.update_power_meter_data)
         self.data_collector.register_power_supply_data_callback(self.power_supply_control_panel.update_power_supply_info)
+        self.data_collector.register_torque_sensor_data_callback(self.motor_monitor.update_torque_sensor_data)
+        # test calculate efficiency
+        self.data_collector.register_calculated_data_callback(self.motor_monitor.update_calculated_data)
 
         self.ui.connection_menu.triggered.connect(self.setting_device)
     

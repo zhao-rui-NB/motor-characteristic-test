@@ -5,6 +5,7 @@ from utils.PowerMeterSPM3 import PowerMeterSPM3
 from utils.ModbusWorker import ModbusWorker
 from utils.PowerSupplyASP7100 import PowerSupplyASP7100
 from utils.SegmentDisplay import SegmentDisplay
+from utils.TorqueSensorDYN200 import TorqueSensor
 
 class DeviceManager:
     
@@ -15,7 +16,9 @@ class DeviceManager:
 
         self.power_supply: PowerSupplyASP7100 = None
         self.power_meter: PowerMeterSPM3 = None 
+        self.torque_sensor: TorqueSensor = None
         self.segment_display_dict: dict[int, SegmentDisplay] = {}
+        
     
 
     def init_power_supply(self, ip, port):
@@ -40,6 +43,23 @@ class DeviceManager:
 
         print(f'[DeviceManager] Power Meter init, com_port: {com_port}, slave_address: {slave_address}')        
         return self.power_meter.worker.client.is_socket_open()
+    
+    def init_torque_sensor(self, com_port:str, slave_address, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
+        if not com_port:
+            print(f'[DeviceManager] Warning: Torque Sensor com_port is empty')
+            return False
+        
+        com_port =  com_port.upper()
+        
+        if com_port not in self.serial_port_workers: # first make worker device will set parameters for the worker 
+            self.serial_port_workers[com_port] = ModbusWorker(com_port, baudrate, parity, stopbits, bytesize, timeout)
+        
+        self.torque_sensor = TorqueSensor(self.serial_port_workers[com_port], slave_address)
+
+        print(f'[DeviceManager] Torque Sensor init, com_port: {com_port}, slave_address: {slave_address}')
+        return self.torque_sensor.worker.client.is_socket_open()
+    
+    
     
     def init_segment_displays(self, com_port:str, addresses:list, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
         '''
