@@ -11,27 +11,13 @@ class ConnectionDialog(QDialog):
         super().__init__(parent)
         
         # self.setModal(True)
-        
-        
+        self.setFont(QFont("Arial", 20))
         
         self.setWindowTitle('Device Settings')
         self.setMinimumSize(400, 500)
         
-        h = self.screen().size().height() // 2
-        w = h
-        x = (self.screen().size().width() - w) // 2
-        y = (self.screen().size().height() - h) // 2
-        self.setGeometry(x, y, w, h)
-        
         self.initUI()
         self.segment_display_dialog: SegmentDisplayAddressDialog = SegmentDisplayAddressDialog()
-
-        
-        self.base_font = QFont()
-        self.base_font.setPointSize(20)
-        self.setFont(self.base_font)
-        
-        
         
         self.pm_com_port.returnPressed.connect(self.accept)
         self.pm_slave_address.returnPressed.connect(self.accept)
@@ -48,11 +34,11 @@ class ConnectionDialog(QDialog):
     def initUI(self):
         
         self.out_widget = QWidget(self)
-        self.out_widget.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        # self.out_widget.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
 
         
-        self.main_layout = QVBoxLayout()
-        self.out_widget.setLayout(self.main_layout)
+        self.main_layout = QVBoxLayout(self)
+        # self.out_widget.setLayout(self.main_layout)
 
 
         ## Power Meter Group
@@ -129,38 +115,38 @@ class ConnectionDialog(QDialog):
         self.main_layout.addLayout(button_layout)
 
     def apply_style(self):
-        self.setStyleSheet("""
+        # self.setStyleSheet("""
 
-            QLineEdit {
-                border: 3px solid #57756e;
-                padding: 0px 10px;
-                border-radius: 15px;
-                background-color: #1a1a1a;
-                color: #ffffff;
-            }
+        #     QLineEdit {
+        #         border: 3px solid #57756e;
+        #         padding: 0px 10px;
+        #         border-radius: 15px;
+        #         background-color: #1a1a1a;
+        #         color: #ffffff;
+        #     }
             
-            QLineEdit:focus { border-color: #5a49ff; background-color: #711b79; }
-            QLineEdit:hover { border-color: #5a49ff; border-width: 5px; }
+        #     QLineEdit:focus { border-color: #5a49ff; background-color: #711b79; }
+        #     QLineEdit:hover { border-color: #5a49ff; border-width: 5px; }
             
             
             
-            QPushButton#set_button, QPushButton#cancel_button {
-                color: white;
-                padding: 10px 20px;
-                border-radius: 15px;
-                font-weight: bold;
-            }
+        #     QPushButton#set_button, QPushButton#cancel_button {
+        #         color: white;
+        #         padding: 10px 20px;
+        #         border-radius: 15px;
+        #         font-weight: bold;
+        #     }
 
-            QPushButton#set_button { background-color: #12e232; }
-            QPushButton#set_button:hover { background-color: #07b221; border: 6px solid #ffeeff;}
-            QPushButton#set_button:focus {  border: 6px solid #ffeeff; outline: none;}
-            QPushButton#set_button:pressed { background-color: #0a8b1e; }
+        #     QPushButton#set_button { background-color: #12e232; }
+        #     QPushButton#set_button:hover { background-color: #07b221; border: 6px solid #ffeeff;}
+        #     QPushButton#set_button:focus {  border: 6px solid #ffeeff; outline: none;}
+        #     QPushButton#set_button:pressed { background-color: #0a8b1e; }
             
-            QPushButton#cancel_button { background-color: #f73c3c; }
-            QPushButton#cancel_button:hover { background-color: #db1a1a; border: 6px solid #ffeeff;}
-            QPushButton#cancel_button:focus {  border: 6px solid #ffeeff; outline: none;}
-            QPushButton#cancel_button:pressed { background-color: #c01515; }
-        """)
+        #     QPushButton#cancel_button { background-color: #f73c3c; }
+        #     QPushButton#cancel_button:hover { background-color: #db1a1a; border: 6px solid #ffeeff;}
+        #     QPushButton#cancel_button:focus {  border: 6px solid #ffeeff; outline: none;}
+        #     QPushButton#cancel_button:pressed { background-color: #c01515; }
+        # """)
     
 
         self.cancel_button.setObjectName("cancel_button")
@@ -169,22 +155,22 @@ class ConnectionDialog(QDialog):
     def config_display_address(self):
         self.segment_display_dialog.exec()
 
-    def resizeEvent(self, event: QResizeEvent):
+    # def resizeEvent(self, event: QResizeEvent):
 
-        font_size = max(10, int(event.size().height() * 0.03))
-        self.base_font.setPointSize(font_size)
-        self.setFont(self.base_font)
+    #     font_size = max(10, int(event.size().height() * 0.03))
+    #     self.base_font.setPointSize(font_size)
+    #     self.setFont(self.base_font)
         
-        self.out_widget.setGeometry(
-            0,
-            0,
-            event.size().width(),
-            event.size().height()
-        )
+    #     self.out_widget.setGeometry(
+    #         0,
+    #         0,
+    #         event.size().width(),
+    #         event.size().height()
+    #     )
 
-        # all children set font 
-        for child in self.findChildren(QWidget):
-            child.setFont(self.font())
+    #     # all children set font 
+    #     for child in self.findChildren(QWidget):
+    #         child.setFont(self.font())
     
     def save_settings(self):
         settings = self.get_settings(cvt_to_int=False)

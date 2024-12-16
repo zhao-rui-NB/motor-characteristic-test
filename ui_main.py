@@ -20,12 +20,16 @@ class ui_main(QMainWindow):
     def __init__(self):
         super().__init__()
         
+        # font size 24
+        font = QFont()
+        font.setPointSize(24)
+        self.setFont(font)
+        
 
         
         self.setWindowTitle("Motor Test System")
         
-        self.ConnectionDialog = ConnectionDialog()
-        
+        self.ConnectionDialog = ConnectionDialog(self)
         
         
         # power supply control panel dock

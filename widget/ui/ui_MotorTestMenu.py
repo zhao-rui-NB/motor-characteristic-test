@@ -8,9 +8,9 @@ class Ui_MotorTestMenu(QScrollArea):
         super().__init__()
         
         # set font size 24
-        font = QFont()
-        font.setPointSize(24)
-        self.setFont(font)
+        # font = QFont()
+        # font.setPointSize(24)
+        # self.setFont(font)
         
         self.setupUi()
     
