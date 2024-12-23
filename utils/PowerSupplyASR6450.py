@@ -22,7 +22,7 @@ SYSTem:REBoot	重啟系統
 
 '''
 
-class PowerSupplyASP7100:
+class PowerSupplyASR6450:
     def __init__(self, host, port):
         self.worker = ScpiSocketWorker(host, port)
         self.worker.start()
@@ -75,35 +75,65 @@ class PowerSupplyASP7100:
 
         self.worker.send_command_threaded(cmd, callback=internal_callback)
 
+
+    def reset(self, callback):
+        self._generic_command("*RST", callback)
+
     def get_idn(self, callback):
         self._generic_command("*IDN?", callback, type_list=[str, str, str, str])
 
     def clear_status(self, callback):
         self._generic_command("*CLS", callback)
 
+
+    '''
+        Source Commands
+        programming Manual p52
+    ''' 
+    # voltage    
     def set_voltage(self, voltage, callback):
         self._generic_command(f"SOUR:VOLT {voltage}", callback)
-
+        
+    def get_voltage(self, callback):
+        self._generic_command("SOUR:VOLT?", callback, type_list=[float])
+        
+    # frequency
     def set_frequency(self, frequency, callback):
         self._generic_command(f"SOUR:FREQ {frequency}", callback)
 
-    def set_current_limit(self, current, callback):
-        self._generic_command(f"SOUR:CURR:LIM:RMS {current}", callback)
-
-    def set_output(self, output, callback):
-        self._generic_command(f"OUTPut {output}", callback)
-
-    def get_voltage(self, callback):
-        self._generic_command("SOUR:VOLT?", callback, type_list=[float])
-
     def get_frequency(self, callback):
         self._generic_command("SOUR:FREQ?", callback, type_list=[float])
+    
+    # current limit
+    def set_current_limit_state(self, state, callback):
+        # [:SOURce]:CURRent:LIMit:RMS:MODE
+        '''IRMS limit state: 0=off, 1=on '''
+        self._generic_command(f"SOUR:CURR:LIM:RMS:MODE {state}", callback)
+    
+    def get_current_limit_state(self, callback):
+        self._generic_command("SOUR:CURR:LIM:RMS:MODE?", callback, type_list=[int])
+        
+    def set_current_limit(self, current, callback):
+        self._generic_command(f"SOUR:CURR:LIM:RMS {current}", callback)
 
     def get_current_limit(self, callback):
         self._generic_command("SOUR:CURR:LIM:RMS?", callback, type_list=[float])
 
+
+    '''
+        Output Commands
+        programming Manual p50
+    '''
+    def set_output(self, output, callback):
+        self._generic_command(f"OUTPut {output}", callback)
+
     def get_output(self, callback):
         self._generic_command("OUTPut?", callback, type_list=[int])
+
+    '''
+        Measure Commands
+        programming Manual p48
+    '''
 
     def measure_current(self, callback):
         self._generic_command("MEAS:CURR?", callback, type_list=[float])
@@ -117,20 +147,13 @@ class PowerSupplyASP7100:
     def measure_power(self, callback):
         self._generic_command("MEAS:POW?", callback, type_list=[float])
 
-    def measure_source(self, callback):
-        '''
-        return [voltage, current, frequency, real_power, apparent_power, peak_current]
-                <voltage>,<current>,<frequency>,<power>,<VA>,<ipeak>
-        '''
-        self._generic_command("SOUR:READ?", callback, type_list=[float, float, float, float, float, float])
-
 
 
 
 if __name__ == "__main__":
     import time
 
-    ps = PowerSupplyASP7100("127.0.0.1", 2268)
+    ps = PowerSupplyASR6450("127.0.0.1", 2268)
 
     def print_callback(result):
         print(f"Received: {result}")
@@ -148,9 +171,6 @@ if __name__ == "__main__":
     time.sleep(0.1)
 
     ps.get_voltage(print_callback)
-    time.sleep(0.1)
-
-    ps.measure_source(print_callback)
     time.sleep(0.1)
 
     ps.get_output(print_callback)

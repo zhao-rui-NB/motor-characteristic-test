@@ -1,8 +1,5 @@
 from .ModbusWorker import ModbusWorker
 
-
-from .ModbusWorker import ModbusWorker
-
 class TorqueSensor:
     def __init__(self, modbus_worker: ModbusWorker, slave_address):
         self.worker: ModbusWorker = modbus_worker
