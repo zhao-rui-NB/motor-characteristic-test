@@ -101,7 +101,7 @@ class ScpiSerialPortWorker:
     
     
 if __name__ == "__main__":
-    comport = "COM3"
+    comport = "COM1"
     baudrate = 9600
     worker = ScpiSerialPortWorker(comport, baudrate)
     worker.start()

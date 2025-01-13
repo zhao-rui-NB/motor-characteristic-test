@@ -1,3 +1,4 @@
+# %%
 import threading
 
 from .ScpiSocketWorker import ScpiSocketWorker
@@ -147,45 +148,203 @@ class PowerSupplyASR6450:
     def measure_power(self, callback):
         self._generic_command("MEAS:POW?", callback, type_list=[float])
 
+    def set_output_phase(self, phase_para, callback):
+        # :SYSTem:CONFigure:PHASe 
+        '''
+        phase_para
+        0 3P4W 
+        1 1P2W 
+        2 1P3W 
+        '''
+
+        self._generic_command(f"SYSTem:CONFigure:PHASe {phase_para}", callback)
+
+    # VOLTage:RANGe 
+    def set_voltage_range(self, range_para, callback):
+        '''
+        range_para
+        100 | 0 100V 
+        200 | 1 200V 
+        AUTO | 2 
+        '''
+        self._generic_command(f"VOLTage:RANGe {range_para}", callback)
+
+    # [:SOURce]:MODE? 
+    def set_source_mode(self, mode_para, callback):
+        #  ac int : 1
+        #  dc int : 2
+        '''
+        mode_para
+            ACDC-INT    | 0 AC+DC-INT 
+            AC-INT      | 1 AC-INT 
+            DC-INT      | 2 DC-INT 
+            ACDC-EXT    | 3 AC+DC-EXT 
+            AC-EXT      | 4 AC-EXT 
+            ACDC-ADD    | 5 AC+DC-ADD 
+            AC-ADD      | 6 AC-ADD 
+            ACDC-SYNC   | 7 AC+DC-SYNC 
+            AC-SYNC     | 8 AC-SYNC  
+            AC-VCA      | 9 AC-VCA 
+        '''
+        self._generic_command(f"MODE {mode_para}", callback)
+
+    # [:SOURce]:VOLTage[:LEVel][:IMMediate]:OFFSet 
+    def set_voltage_offset(self, offset, callback):
+        self._generic_command(f"VOLTage:OFFSet {offset}", callback)
 
 
+    # :INSTrument:EDIT 
+    # 個別調參數
+    def set_instrument_edit(self, para, callback):
+        '''
+            EACH 0 Each phase 
+            ALL 1 All phase 
+        '''
+        self._generic_command(f"INSTrument:EDIT {para}", callback)
+
+    # :INSTrument:SELect 
+    def set_instrument_select(self, para, callback):
+        '''
+            L1 | 0 L1 phase 
+            L2 | 1 L2 phase 
+            L3 | 2 L3 phase 
+        '''
+        self._generic_command(f"INSTrument:SELect {para}", callback)
+
+
+    # [:SOURce]:PHASe:PHASe
+    def set_phase_phase(self, target, angle, callback):
+                        
+        '''
+            <target> <NR1> 
+                L12 | 0 Phase angle between L1-L2 
+                L13 | 1 Phase angle between L1-L3 
+            <phase angle> <NR2> 
+                MINimum 0 
+                MAXimum 359.9 
+        '''
+        self._generic_command(f"PHASe:PHASe {target},{angle}", callback)
+
+    # [:SOURce]:PHASe:MODE
+    def set_phase_mode(self, mode_para, callback):
+        '''
+            mode_para
+                UNBalance|0 UNBalance 
+                BALance|1 Balance 
+        '''
+        self._generic_command(f"PHASe:MODE {mode_para}", callback)
+    
+            
 
 if __name__ == "__main__":
     import time
 
-    ps = PowerSupplyASR6450("127.0.0.1", 2268)
+    ps = PowerSupplyASR6450("192.168.0.103", 5025)
 
     def print_callback(result):
         print(f"Received: {result}")
 
+    # # %%
+    # ps.set_voltage(50, None)
     
-    ps.set_voltage(10000, None)
-    
+    ps.clear_status(print_callback)
+
+    # %%
+    print("get_idn")
     ps.get_idn(print_callback)
     time.sleep(0.1)
 
-    ps.get_voltage(print_callback)
-    time.sleep(0.1)
+    # ps.set_output_phase(0, print_callback)
+    # time.sleep(0.1)
 
-    ps.set_voltage(3.3, print_callback)
-    time.sleep(0.1)
+    # set voltage range
+    # print("set_voltage_range")
+    # ps.set_voltage_range(2, print_callback)
+    # time.sleep(0.1)
 
-    ps.get_voltage(print_callback)
-    time.sleep(0.1)
+    # %%
+    # print("set_voltage")
+    # ps.set_voltage(127, print_callback)
+    # ps.set_voltage(10, print_callback)
+    # time.sleep(0.1)
 
-    ps.get_output(print_callback)
-    time.sleep(0.1)
+    # print("get_voltage")
+    # ps.get_voltage(print_callback)
+    # time.sleep(0.1)
 
-    ps.set_output(True, print_callback)
-    time.sleep(0.1)
 
-    ps.get_output(print_callback)
-    time.sleep(0.1)
+    # set frequency
+    # print("set_frequency")
+    # ps.set_frequency(55, print_callback)
+    # time.sleep(0.1)
 
-    ps.set_output(False, print_callback)
-    time.sleep(0.1)
 
-    ps.get_output(print_callback)
-    time.sleep(0.1)
+    # 電壓
+    # set source mode
+    # print("set_source_mode")
+    # ps.set_source_mode(1, print_callback)
 
-    ps.stop()
+
+
+
+    ############################
+    # set instrument edit
+    # print("set_instrument_edit")
+    # ps.set_instrument_edit(0, print_callback)
+
+    # # set instrument select
+    # print("set_instrument_select")
+    # ps.set_instrument_select(0, print_callback)
+
+    # # set voltage offset
+    # print("set_voltage_offset")
+    # ps.set_voltage_offset(0, print_callback)
+
+    # ps.set_instrument_select(1, print_callback)
+    # ps.set_voltage_offset(0, print_callback)
+    # ps.set_instrument_select(2, print_callback)
+    # ps.set_voltage_offset(0, print_callback)
+    ############################
+
+    # set instrument edit
+    # print("set_instrument_edit")
+    # ps.set_instrument_edit(0, print_callback)
+
+    # ps.set_instrument_select(0, print_callback)
+    # ps.set_voltage(127, print_callback)
+    # ps.set_instrument_select(1, print_callback)
+    # ps.set_voltage(127, print_callback)
+    # ps.set_instrument_select(2, print_callback)
+    # ps.set_voltage(127, print_callback)
+
+    ############################
+
+
+    # set phase phase
+    # print("set_phase_phase")
+    ps.set_phase_phase(0, 90, print_callback)
+    ps.set_phase_phase(1, 180, print_callback)
+
+
+
+    # print("get_output")
+    # ps.get_output(print_callback)
+    # time.sleep(0.1)
+
+    # print("set_output")
+    # ps.set_output(True, print_callback)
+    # time.sleep(0.1)
+
+    # print("get_output")
+    # ps.get_output(print_callback)
+    # time.sleep(0.1)
+
+    print("set_output")
+    ps.set_output(1, print_callback)
+    # time.sleep(0.1)
+
+    # print("get_output")
+    # ps.get_output(print_callback)
+    # time.sleep(0.1)
+
+    time.sleep(1)
