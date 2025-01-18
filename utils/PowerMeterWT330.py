@@ -1,4 +1,4 @@
-from ScpiSerialPortWorker import ScpiSerialPortWorker
+from .ScpiSerialPortWorker import ScpiSerialPortWorker
 
 '''
 this program not tested yet

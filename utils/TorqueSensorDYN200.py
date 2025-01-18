@@ -1,6 +1,6 @@
 from .ModbusWorker import ModbusWorker
 
-class TorqueSensor:
+class TorqueSensorDYN200:
     def __init__(self, modbus_worker: ModbusWorker, slave_address):
         self.worker: ModbusWorker = modbus_worker
         self.slave_address = slave_address
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     modbus_worker = ModbusWorker(port='COM3', baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5)
     modbus_worker.start()
 
-    torque_sensor = TorqueSensor(modbus_worker, slave_address=0x01)
+    torque_sensor = TorqueSensorDYN200(modbus_worker, slave_address=0x01)
 
     torque_sensor.read_torque(print_callback)
     torque_sensor.read_speed(print_callback)

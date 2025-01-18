@@ -5,47 +5,54 @@ from engine.DeviceManager import DeviceManager
 
 class DataCollector:
     
-    def __init__(self,device_manager: DeviceManager):
-        self.device_manager = device_manager
-        
+    def __init__(self):
         self.running = False
+        self.update_interval = 1 # in seconds
+        self.collect_thread = None
         
-        # measurement data
+        self.collect_functions = []
+        
+        self.is_callback_functions = {}
+        self.new_data_flags = {}
+        self.collected_data = {} # key is the collect function, value is the function return value
+        
+    def wait_all_new_data(self):
+        # clear all new data flags
+        for func in self.collect_functions:
+            self.new_data_flags[func] = False
+            
+        # wait until all new data flags are true
+        while not all(self.new_data_flags.values()):
+            time.sleep(0.1)
+            
+    def get_collected_data(self, collect_function):
+        return self.collected_data[collect_function]
+        
+    def _add_collect_function(self, collect_function, is_cb_func=True):
+        self.collect_functions.append(collect_function)
 
-        self.power_meter_data = {}
-        self.power_meter_data_update_thread = None
-        self.power_meter_data_timestamp = 0
-        self.power_meter_data_callback = None
-        
-        # self.power_supply_data_keys = ['voltage', 'frequency', 'current_limit', 'output', 'measure_voltage', 'measure_current', 'measure_frequency', 'measure_power', 'measure_VA', 'measure_ipeak']
-        self.power_supply_data = {}
-        self.power_supply_data_update_thread = None
-        self.power_supply_data_timestamp = 0
-        self.power_supply_data_callback = None
-        
-        # self.torque_sensor_data_keys = ['torque', 'speed', 'power']
-        self.torque_sensor_data = {}
-        self.torque_sensor_data_update_thread = None
-        self.torque_sensor_data_timestamp = 0
-        self.torque_sensor_data_callback = None
-        
-        # calculated value, e.g. efficiency, power factor
-        self.calculated_data = {}
-        self.calculated_data_callback = None
-        
-        
-
-    def register_power_meter_data_callback(self, callback: callable):
-        self.power_meter_data_callback = callback
+        self.is_callback_functions[collect_function] = is_cb_func
+        self.new_data_flags[collect_function] = False
+        self.collected_data[collect_function] = None
     
-    def register_power_supply_data_callback(self, callback: callable):
-        self.power_supply_data_callback = callback
-        
-    def register_torque_sensor_data_callback(self, callback: callable):
-        self.torque_sensor_data_callback = callback
-        
-    def register_calculated_data_callback(self, callback: callable):
-        self.calculated_data_callback = callback
+    def _make_callback_function(self, collect_function):
+        def cb_func(data):
+            self.collected_data[collect_function] = data
+            self.new_data_flags[collect_function] = True
+        return cb_func
+    
+    
+    def _run(self):
+        while self.running:
+            for func in self.collect_functions:
+                is_callback = self.is_callback_functions[func]
+                if is_callback:
+                    func(self._make_callback_function(func))
+                else:
+                    self.collected_data[func] = func()
+                    self.new_data_flags[func] = True
+            time.sleep(self.update_interval)
+
     
     def start(self):
         if self.running:
@@ -53,161 +60,46 @@ class DataCollector:
             return
         self.running = True
         
-        if self.device_manager.power_meter:
-            # start power meter data update thread
-            self.power_meter_data_update_thread = Thread(target=self._update_power_meter_data_thread, daemon=True)
-            self.power_meter_data_update_thread.start()
-        else:
-            print('[DataCollector] power meter not initialized, skip power meter data collection')
+        self.collect_thread = Thread(target=self._run, daemon=True)
+        self.collect_thread.start()
         
-        if self.device_manager.power_supply:
-            # start power supply data update thread
-            self.power_supply_data_update_thread = Thread(target=self._update_power_supply_data_thread, daemon=True)
-            self.power_supply_data_update_thread.start()
-        else:
-            print('[DataCollector] power supply not initialized, skip power supply data collection')
-            
-        if self.device_manager.torque_sensor:
-            # start torque sensor data update thread
-            self.torque_sensor_data_update_thread = Thread(target=self._update_torque_sensor_data_thread, daemon=True)
-            self.torque_sensor_data_update_thread.start()
-            
-            
     def stop(self):
         self.running = False
-        if self.power_meter_data_update_thread:
-            self.power_meter_data_update_thread.join()
-        if self.power_supply_data_update_thread:
-            self.power_supply_data_update_thread.join()
-    
-    
-    #### Power Meter Data ####
-    def _meter_vcfp_callback(self, data: dict[str, float]):
-        # add convert kW to W
-        without_k = {}
-        for key, value in data.items():
-            if key.startswith('k'):
-                without_k[key.replace('k', '')] = value * 1000 if value is not None else None
-        data.update(without_k)
-        self._update_calc() # update calculated data
+        if self.collect_thread is not None:
+            self.collect_thread.join()
+            self.collect_thread = None
         
-        self.power_meter_data.update(data)
-        try:
-            if self.power_meter_data_callback:
-                self.power_meter_data_callback(data)
-        except Exception as e:
-            print(f'[DataCollector] Error in power meter data callback: {e}')
-    
-    def _update_power_meter_data_thread(self):
-        while self.running and self.device_manager.power_meter:
-            if self.device_manager.power_meter.worker.get_task_count() == 0:
-                self.device_manager.power_meter.read_vcfp(self._meter_vcfp_callback)
-            else:
-                print(f'[DataCollector] power meter worker too busy, task count: {self.device_manager.power_meter.worker.get_task_count()}, skip this round')
-            
-            time.sleep(0.5)
-    
-    #### Power Supply Data ####
-    def _make_power_supply_data_callback(self, keys:list[str], skip_callback=False):
-        '''
-        make a callback function for power supply data
-        parameters:
-            keys: list of keys to update in self.power_supply_data
-            skip_callback: if True, will not call the registered callback function
-        '''
-        def callback(data):
-            try:
-                self.power_supply_data.update({k: data[i] if data else None for i, k in enumerate(keys)})
-                if self.power_supply_data_callback and not skip_callback:
-                    self.power_supply_data_callback(self.power_supply_data) # callback all data, not just the updated one
-            except Exception as e:
-                print(f'[DataCollector] Error in power supply data callback: {e}')
-        return callback                 
-    
-    def _update_power_supply_data_thread(self):
-        while self.running and self.device_manager.power_supply:
-            if self.device_manager.power_supply.worker.get_task_count() == 0:
-                # only callback when all data are updated
-                self.device_manager.power_supply.get_voltage(self._make_power_supply_data_callback(['voltage'], skip_callback=True))
-                self.device_manager.power_supply.get_frequency(self._make_power_supply_data_callback(['frequency'], skip_callback=True))
-                self.device_manager.power_supply.get_current_limit(self._make_power_supply_data_callback(['current_limit'], skip_callback=True))
-                self.device_manager.power_supply.get_output(self._make_power_supply_data_callback(['output'], skip_callback=True))
-                self.device_manager.power_supply.measure_source(self._make_power_supply_data_callback(['measure_voltage', 'measure_current', 'measure_frequency', 'measure_power', 'measure_VA', 'measure_ipeak']))
-            else:
-                print(f'[DataCollector] power supply worker too busy, task count: {self.device_manager.power_supply.worker.get_task_count()}, skip this round')
-            
-            time.sleep(0.5)
-    
-    #### Torque Sensor Data ####
-    def _torque_sensor_all_callback(self, data: dict[str, float]):
-        self.torque_sensor_data.update(data)
-        self._update_calc()
-        try:
-            if self.torque_sensor_data_callback:
-                self.torque_sensor_data_callback(data)
-        except Exception as e:
-            print(f'[DataCollector] Error in torque sensor data callback: {e}')
-            
-    def _update_torque_sensor_data_thread(self):
-        while self.running and self.device_manager.torque_sensor:
-            if self.device_manager.torque_sensor.worker.get_task_count() == 0:
-                self.device_manager.torque_sensor.read_all(self._torque_sensor_all_callback)
-            else:
-                print(f'[DataCollector] torque sensor worker too busy, task count: {self.device_manager.torque_sensor.worker.get_task_count()}, skip this round')
-            
-            time.sleep(0.5)
-
-    ### Calculated Data ###
-    def _update_calc(self): # this function needs to be called immediately after updating data
-        self.calculated_data = {}
-        
-        if self.power_meter_data.get('W_tot') and self.power_supply_data.get('measure_power'):
-            self.calculated_data['efficiency'] = self.power_meter_data['W_tot'] / self.power_supply_data['measure_power']*100
-        else:
-            self.calculated_data['efficiency'] = None
-            
-        if self.calculated_data_callback:
-            self.calculated_data_callback(self.calculated_data)
-    
-
-    
-    def get_calculated_data(self):  
-        return self.calculated_data
-            
-
-
 
 if __name__=="__main__":
-    from engine.DeviceManager import DeviceManager
-
     
-    
-    device_manager = DeviceManager()
-    device_manager.init_power_supply("127.0.0.1", 2268)
-    device_manager.init_power_meter("COM3", 0x0F)
-    
-    data_collector = DataCollector(device_manager)
-    
-    
-    def print_power_meter_data(data):
-        # if data is dict and value is not none print each value 2 decimal places
-        if type(data) == dict:
-            print(f'Power Meter Data: { {k: f"{v:.1f}" if v is not None else None for k, v in data.items()} }')
-        else:
-            print(f'Power Meter Data: {data}')
+    def test_get_voltage_cb(callback):
+        def run():
+            time.sleep(10)
+            callback({'voltage': 10, 'time': time.time()})
+        Thread(target=run).start()
         
-    def print_power_supply_data(data):
-        print(f'Power Supply Data: {data}')
+                
+    def test_get_current_cb(callback):
+        def run():
+            time.sleep(10)
+            callback({'current': 5, 'time': time.time()})
+        Thread(target=run).start()
         
-    data_collector.register_power_meter_data_callback(print_power_meter_data)
-    data_collector.register_power_supply_data_callback(print_power_supply_data) 
-    
-    
+        
+    data_collector = DataCollector()
     
     try:
+        data_collector._add_collect_function(test_get_voltage_cb)
+        data_collector._add_collect_function(test_get_current_cb)
+        
         data_collector.start()
+        
         while True:
-            time.sleep(1)
+            data_collector.wait_all_new_data()
+            print('voltage:', data_collector.get_collected_data(test_get_voltage_cb))
+            print('current:', data_collector.get_collected_data(test_get_current_cb))
+            time.sleep(2)
+            
     except KeyboardInterrupt:
         pass
 

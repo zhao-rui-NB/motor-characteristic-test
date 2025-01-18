@@ -1,99 +1,81 @@
+import configparser
+from typing import Union
 from threading import Thread
 import time
 
 from utils.PowerMeterSPM3 import PowerMeterSPM3
+from utils.PowerMeterWT330 import PowerMeterWT330
 from utils.ModbusWorker import ModbusWorker
 from utils.PowerSupplyASP7100 import PowerSupplyASP7100
+from utils.PowerSupplyASR6450 import PowerSupplyASR6450
 from utils.SegmentDisplay import SegmentDisplay
-from utils.TorqueSensorDYN200 import TorqueSensor
+from utils.TorqueSensorDYN200 import TorqueSensorDYN200
 
 class DeviceManager:
     
     def __init__(self):
         # hardware devices
 
-        self.serial_port_workers = {}
+        self.config = None
+        
+        self.serial_port_workers: dict[str, ModbusWorker] = {}
 
-        self.power_supply: PowerSupplyASP7100 = None
-        self.power_meter: PowerMeterSPM3 = None 
-        self.torque_sensor: TorqueSensor = None
+        self.power_supply: Union[PowerSupplyASP7100, PowerSupplyASR6450] = None
+        self.power_meter: Union[PowerMeterSPM3, PowerMeterWT330] = None
+        self.torque_sensor: TorqueSensorDYN200 = None
         self.segment_display_dict: dict[int, SegmentDisplay] = {}
         
-    
-
-    def init_power_supply(self, ip, port):
-        if not ip or not port:
-            print(f'[DeviceManager] Warning: Power Supply ip or port is empty')
-            return False
-        self.power_supply = PowerSupplyASP7100(ip, port)
-        print(f'[DeviceManager] Power Supply init, ip: {ip}, port: {port}')
-        return self.power_supply.worker.connected.is_set()
-
-    def init_power_meter(self,com_port:str, slave_address, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
-        if not com_port:
-            print(f'[DeviceManager] Warning: Power Meter com_port is empty')
+    def load_devices_from_ini(self, ini_file:str):
+        if self.config is not None:
+            print(f'[DeviceManager] Error: Config already loaded')
             return False
         
-        com_port =  com_port.upper()
+        self.config = configparser.ConfigParser()
+        self.config.read(ini_file)
         
-        if com_port not in self.serial_port_workers: # first make worker device will set parameters for the worker 
-            self.serial_port_workers[com_port] = ModbusWorker(com_port, baudrate, parity, stopbits, bytesize, timeout)
-        
-        self.power_meter = PowerMeterSPM3(self.serial_port_workers[com_port], slave_address)
+        # load power supply (PowerSupplyASP7100, PowerSupplyASR6450)
+        if 'PowerSupplyASR6450' in self.config:
+            ps_cfg = self.config['PowerSupplyASR6450']
+            ip = ps_cfg.get('ip')
+            port = ps_cfg.getint('port')
+            self.power_supply = PowerSupplyASR6450(ip, port)
+            print(f'[DeviceManager] Power Supply init, ip: {ip}, port: {port}')
+            
+        # load power meter (PowerMeterSPM3, PowerMeterWT330)
+        if 'PowerMeterWT330' in self.config:
+            pm_config = self.config['PowerMeterWT330']
+            com_port = pm_config.get('com_port')
+            baudrate = pm_config.getint('baudrate')
+            self.power_meter = PowerMeterWT330(com_port, baudrate)
+            print(f"Power Meter Model: PowerMeterWT330, COM Port: {com_port}, Baudrate: {baudrate}")
 
-        print(f'[DeviceManager] Power Meter init, com_port: {com_port}, slave_address: {slave_address}')        
-        return self.power_meter.worker.client.is_socket_open()
-    
-    def init_torque_sensor(self, com_port:str, slave_address, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
-        if not com_port:
-            print(f'[DeviceManager] Warning: Torque Sensor com_port is empty')
-            return False
-        
-        com_port =  com_port.upper()
-        
-        if com_port not in self.serial_port_workers: # first make worker device will set parameters for the worker 
-            self.serial_port_workers[com_port] = ModbusWorker(com_port, baudrate, parity, stopbits, bytesize, timeout)
-        
-        self.torque_sensor = TorqueSensor(self.serial_port_workers[com_port], slave_address)
-
-        print(f'[DeviceManager] Torque Sensor init, com_port: {com_port}, slave_address: {slave_address}')
-        return self.torque_sensor.worker.client.is_socket_open()
-    
-    
-    
-    def init_segment_displays(self, com_port:str, addresses:list, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
-        '''
-        if the com_port exists, all the parameters for the modbus worker will be set by the first device.
-        addresses: list of addresses for the segment display
-        '''
+    def _add_modbus_worker(self, com_port:str, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
+        ''' if the com_port exists, will not create a new worker, all parameters will be same as the first worker '''
         com_port = com_port.upper()
-        
         if com_port not in self.serial_port_workers:
             self.serial_port_workers[com_port] = ModbusWorker(com_port, baudrate, parity, stopbits, bytesize, timeout)
+            print(f'[DeviceManager] Modbus Worker added, com_port: {com_port}')
+        else:
+            print(f'[DeviceManager] Warning: Modbus Worker already exists, com_port: {com_port}')
             
-        for address in addresses:
-            if address not in self.segment_display_dict:
-                self.segment_display_dict[address] = SegmentDisplay(self.serial_port_workers[com_port], address)             
-                print(f'[DeviceManager] Segment Display init, com_port: {com_port}, address: {address}')
-            else:
-                print(f'[DeviceManager] Warning: Segment Display already exists, com_port: {com_port}, address: {address}')
-               
-        
     
     # release resources
     def release_resources(self):
-        self.power_supply.worker.stop()
-        self.power_supply = None
         
-        self.power_meter = None
+        if self.power_supply is not None:
+            self.power_supply.worker.stop()
+            self.power_supply = None
+        
+        if self.power_meter is not None:
+            self.power_meter.worker.stop()
             
-        for port in list(self.serial_port_workers.keys()):
-            self.serial_port_workers[port].stop()
-        self.serial_port_workers.clear()
+        # for port in list(self.serial_port_workers.keys()):
+        #     self.serial_port_workers[port].stop()
+        # self.serial_port_workers.clear()
     
             
 if __name__=="__main__":
-    device = DeviceManager()
+    device_manger = DeviceManager()
 
     
     def print_power_meter_data(data):
@@ -102,31 +84,23 @@ if __name__=="__main__":
     def print_power_supply_data(data):
         print(f'Power Supply Data: {data}')
     
-    print()
-    print("Device start...")    
-    r_power = device.init_power_supply("127.0.0.1", 2268)
-    r_meter = device.init_power_meter("COM3", 0x0F)
-    print(f'Power Supply connected: {r_power}')
-    print(f'Power Meter connected: {r_meter}')
     
-    print()
-    print("Device stop...")
-    device.release_resources()
+    device_manger.load_devices_from_ini('device.ini')
     
     
     
-    print()    
-    print("Device start...")
-    device.init_power_meter("COM3", 0x0F)
-    device.init_power_supply("127.0.0.1", 2268)
     
-    device.power_meter.read_vcfp(print_power_meter_data)
-    device.power_supply.get_voltage(print_power_supply_data)
+    time.sleep(1)
     
     
-    device.release_resources()
+    print('power_supply', device_manger.power_supply)
+    print('power_meter', device_manger.power_meter)
+    print('torque_sensor', device_manger.torque_sensor)
+    print('segment_display_dict', device_manger.segment_display_dict)
+            
     
-    # time.sleep(1)
     
+    
+        
     
     
