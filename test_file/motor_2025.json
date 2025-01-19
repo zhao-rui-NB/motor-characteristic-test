@@ -1,0 +1,24 @@
+{
+    "rated_voltage": 11,
+    "power_phases": 22,
+    "speed": 33,
+    "rated_current": 44,
+    "frequency": 55,
+    "horsepower": 10,
+    "poles": 4,
+    "no_load_current": 5,
+    "test_results": {
+        "result_dc_resistance": 456,
+        "result_open_circuit": 123,
+        "result_locked_rotor": 789,
+        "result_load_test": null,
+        "result_separate_excitation": null
+    },
+    "test_data_log": {
+        "data_dc_resistance": [{"hello": "world"}],
+        "data_open_circuit": [],
+        "data_locked_rotor": [],
+        "data_load": [],
+        "data_separate_excitation": []
+    }
+}

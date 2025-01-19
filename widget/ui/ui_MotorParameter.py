@@ -11,7 +11,7 @@ class Ui_MotorParameter(QWidget):
         self.ctrl_pressed = False
         
         font = QFont()
-        font.setPointSize(20)
+        # font.setPointSize(20)
         self.setFont(font)
         
         self.technical_parameters = [

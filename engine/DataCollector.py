@@ -2,7 +2,9 @@ import time
 from threading import Thread
 
 from engine.DeviceManager import DeviceManager
+'''
 
+'''
 class DataCollector:
     
     def __init__(self):
@@ -28,7 +30,7 @@ class DataCollector:
     def get_collected_data(self, collect_function):
         return self.collected_data[collect_function]
         
-    def _add_collect_function(self, collect_function, is_cb_func=True):
+    def _add_collect_function(self, collect_function, is_cb_func=False):
         self.collect_functions.append(collect_function)
 
         self.is_callback_functions[collect_function] = is_cb_func
@@ -89,8 +91,8 @@ if __name__=="__main__":
     data_collector = DataCollector()
     
     try:
-        data_collector._add_collect_function(test_get_voltage_cb)
-        data_collector._add_collect_function(test_get_current_cb)
+        data_collector._add_collect_function(test_get_voltage_cb, is_cb_func=True)
+        data_collector._add_collect_function(test_get_current_cb, is_cb_func=True)
         
         data_collector.start()
         

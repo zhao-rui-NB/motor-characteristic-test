@@ -3,13 +3,14 @@ from .ScpiSerialPortWorker import ScpiSerialPortWorker
 '''
 this program not tested yet
 
+   2025_0118: change to sync, not test
+
 '''
 
 class PowerMeterWT330:
     def __init__(self, comport, baudrate=9600):
         self.worker = ScpiSerialPortWorker(comport, baudrate)
         self.worker.start()
-        # self.lock = threading.Lock()
         
     def _split_response(self, response, to_1d=True):
         if response is None:
@@ -41,24 +42,25 @@ class PowerMeterWT330:
                 return None
         return response_list
     
-    def _generic_command(self, cmd, callback, type_list=None):
-        def internal_callback(result):
-            print('result:', result)    
+    def _generic_command(self, cmd, type_list=None):
+        
+        success, reponse = self.worker.send_command(cmd)
+        
+        if not success:
+            print(f"[PowerMeterWT330] Command failed: {cmd}")
             
-            if not callback:
-                return
-            success, response = result
-
-            items = self._split_response(response) # if none, return None
-            # print(f"items: {items}")
-
-            if items is None and type_list:
-                items = self._cvt_response_type(items, type_list)
-                callback([None for _ in type_list])
-            else:
-                callback(items)
-            
-        self.worker.send_command_threaded(cmd, callback=internal_callback)
+        items = self._split_response(reponse) # if none, return None
+        
+        # if no need to convert type, return directly
+        if type_list is None:
+            return items
+        
+        # convert type, is failed, return None for each item
+        items = self._cvt_response_type(items, type_list)
+        if items is None:
+            return [None for _ in type_list]
+        return items
+    
         
     #### power meter api
     

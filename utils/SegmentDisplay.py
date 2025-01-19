@@ -3,6 +3,11 @@ from .ModbusWorker import ModbusWorker
 
 from typing import Union
 
+'''
+   2025_0118: change to sync, not test
+
+'''
+
 class SegmentDisplay:
     def __init__(self, modbus_worker: ModbusWorker, slave_address=1):
         self.modbus = modbus_worker
@@ -38,7 +43,7 @@ class SegmentDisplay:
         register6 = ((decimal_places << 8) & 0x0F00) | ((int_value >> 16) & 0xFF)
         register7 = int_value & 0xFFFF 
         
-        self.modbus.write_registers_threaded(0x6, [register6, register7], self.slave, self._write_callback)
+        self.modbus.write_registers(0x6, [register6, register7], self.slave, self._write_callback)
         
     def set_brightness(self, level: int):
         """
@@ -46,7 +51,7 @@ class SegmentDisplay:
         :param level: 亮度级别 (0-7)
         """
         level = max(0, min(level, 7))  # 确保level在0-7之间
-        self.modbus.write_register_threaded(14, level, self.slave, self._write_callback)
+        self.modbus.write_register(14, level, self.slave, self._write_callback)
 
     def set_blink(self, blink_pattern: int):
         """
@@ -54,14 +59,8 @@ class SegmentDisplay:
         :param blink_pattern: 6位二进制数，每位对应一个数码管的闪烁状态
         """
         blink_pattern = blink_pattern & 0x3F  # 确保只有低6位有效
-        self.modbus.write_register_threaded(8, blink_pattern, self.slave, self._write_callback)
+        self.modbus.write_register(8, blink_pattern, self.slave, self._write_callback)
 
-    def _write_callback(self, result):
-        return 
-        if result:
-            print("Write operation successful")
-        else:
-            print("Write operation failed")
 
 # 使用示例
 if __name__ == "__main__":
@@ -95,9 +94,5 @@ if __name__ == "__main__":
     #     display.set_brightness(i)
     #     display.set_number(i+8000)
     #     time.sleep(1)
-
-    # # 确保所有任务完成
-    while not modbus_worker.task_queue.empty():
-        pass
 
     modbus_worker.stop()

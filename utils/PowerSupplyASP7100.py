@@ -2,6 +2,10 @@ import threading
 
 from .ScpiSocketWorker import ScpiSocketWorker
 
+'''
+   2025_0118: change to sync, not test
+
+'''
 
 '''
 
@@ -26,7 +30,6 @@ class PowerSupplyASP7100:
     def __init__(self, host, port):
         self.worker = ScpiSocketWorker(host, port)
         self.worker.start()
-        # self.lock = threading.Lock()
 
     def _split_response(self, response, to_1d=True):
         if response is None:
@@ -58,71 +61,73 @@ class PowerSupplyASP7100:
                 return None
         return response_list
 
-    def _generic_command(self, cmd, callback, type_list=None):
-        def internal_callback(result):
-            if not callback:
-                return
-            
-            success, response = result
-            
-            items = self._split_response(response) # if none, return None
-            items = self._cvt_response_type(items, type_list)
-            
-            if items is None and type_list:
-                callback([None for _ in type_list])
-            else:
-                callback(items)
+    def _generic_command(self, cmd, type_list=None):
 
-        self.worker.send_command_threaded(cmd, callback=internal_callback)
+        success, response = self.worker.send_command(cmd)
+        
+        if not success:
+            print(f"[PowerSupplyASP7100] Command failed: {cmd}")
+        
+        items = self._split_response(response) # if none, return None
 
-    def get_idn(self, callback):
-        self._generic_command("*IDN?", callback, type_list=[str, str, str, str])
+        # if no need to convert type, return directly
+        if type_list is None:
+            return items
+        
+        # convert type, is failed, return None for each item
+        items = self._cvt_response_type(items, type_list)
+        if items is None:
+            return [None for _ in type_list]
+        return items
 
-    def clear_status(self, callback):
-        self._generic_command("*CLS", callback)
+    def get_idn(self):
+        return self._generic_command("*IDN?", type_list=[str, str, str, str])
 
-    def set_voltage(self, voltage, callback):
-        self._generic_command(f"SOUR:VOLT {voltage}", callback)
+    def clear_status(self):
+        return self._generic_command("*CLS")
 
-    def set_frequency(self, frequency, callback):
-        self._generic_command(f"SOUR:FREQ {frequency}", callback)
+    def set_voltage(self, voltage):
+        return self._generic_command(f"SOUR:VOLT {voltage}")
 
-    def set_current_limit(self, current, callback):
-        self._generic_command(f"SOUR:CURR:LIM:RMS {current}", callback)
+    def set_frequency(self, frequency):
+        return self._generic_command(f"SOUR:FREQ {frequency}")
 
-    def set_output(self, output, callback):
-        self._generic_command(f"OUTPut {output}", callback)
+    def set_current_limit(self, current):
+        return self._generic_command(f"SOUR:CURR:LIM:RMS {current}")
 
-    def get_voltage(self, callback):
-        self._generic_command("SOUR:VOLT?", callback, type_list=[float])
+    def set_output(self, output):
+        return self._generic_command(f"OUTPut {output}")
 
-    def get_frequency(self, callback):
-        self._generic_command("SOUR:FREQ?", callback, type_list=[float])
+    def get_voltage(self):
+        return self._generic_command("SOUR:VOLT?", type_list=[float])
 
-    def get_current_limit(self, callback):
-        self._generic_command("SOUR:CURR:LIM:RMS?", callback, type_list=[float])
+    def get_frequency(self):
+        return self._generic_command("SOUR:FREQ?", type_list=[float])
 
-    def get_output(self, callback):
-        self._generic_command("OUTPut?", callback, type_list=[int])
+    def get_current_limit(self):
+        return self._generic_command("SOUR:CURR:LIM:RMS?", type_list=[float])
 
-    def measure_current(self, callback):
-        self._generic_command("MEAS:CURR?", callback, type_list=[float])
+    def get_output(self):
+        return self._generic_command("OUTPut?", type_list=[int])
 
-    def measure_voltage(self, callback):
-        self._generic_command("MEAS:VOLT?", callback, type_list=[float])
+    def measure_current(self):
+        return self._generic_command("MEAS:CURR?", type_list=[float])
 
-    def measure_apparent_power(self, callback):
-        self._generic_command("MEAS:POW:APP?", callback, type_list=[float])
+    def measure_voltage(self):
+        return self._generic_command("MEAS:VOLT?", type_list=[float])
 
-    def measure_power(self, callback):
-        self._generic_command("MEAS:POW?", callback, type_list=[float])
+    def measure_apparent_power(self):
+        return self._generic_command("MEAS:POW:APP?", type_list=[float])
 
-    def measure_source(self, callback):
+    def measure_power(self):
+        return self._generic_command("MEAS:POW?", type_list=[float])
+
+    def measure_source(self):
         '''
         return [voltage, current, frequency, real_power, apparent_power, peak_current]
                 <voltage>,<current>,<frequency>,<power>,<VA>,<ipeak>
         '''
-        self._generic_command("SOUR:READ?", callback, type_list=[float, float, float, float, float, float])
+        self._generic_command("SOUR:READ?", type_list=[float, float, float, float, float, float])
 
 
 
@@ -132,40 +137,12 @@ if __name__ == "__main__":
 
     ps = PowerSupplyASP7100("127.0.0.1", 2268)
 
-    def print_callback(result):
-        print(f"Received: {result}")
-
+    print(ps.get_idn())
     
-    ps.set_voltage(10000, None)
-    
-    ps.get_idn(print_callback)
-    time.sleep(0.1)
+    ps.set_voltage(50)
+    print(ps.get_voltage())
 
-    ps.get_voltage(print_callback)
-    time.sleep(0.1)
+    ps.set_voltage(3.3)
+    print(ps.get_voltage())
 
-    ps.set_voltage(3.3, print_callback)
-    time.sleep(0.1)
-
-    ps.get_voltage(print_callback)
-    time.sleep(0.1)
-
-    ps.measure_source(print_callback)
-    time.sleep(0.1)
-
-    ps.get_output(print_callback)
-    time.sleep(0.1)
-
-    ps.set_output(True, print_callback)
-    time.sleep(0.1)
-
-    ps.get_output(print_callback)
-    time.sleep(0.1)
-
-    ps.set_output(False, print_callback)
-    time.sleep(0.1)
-
-    ps.get_output(print_callback)
-    time.sleep(0.1)
-
-    ps.stop()
+    ps.worker.stop()

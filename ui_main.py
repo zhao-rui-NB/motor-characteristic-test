@@ -22,7 +22,7 @@ class ui_main(QMainWindow):
         
         # font size 24
         font = QFont()
-        font.setPointSize(24)
+        font.setPointSize(14)
         self.setFont(font)
         
 
@@ -33,11 +33,11 @@ class ui_main(QMainWindow):
         
         
         # power supply control panel dock
-        self.power_dock = QDockWidget("PowerSupplyControlPanel", self)
-        self.power_ui = Ui_PowerSupplyControlPanel()
-        self.power_dock.setWidget(self.power_ui)
-        self.power_dock.visibilityChanged.connect(self.update_menu_display_status)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.power_dock, Qt.Orientation.Vertical)
+        # self.power_dock = QDockWidget("PowerSupplyControlPanel", self)
+        # self.power_ui = Ui_PowerSupplyControlPanel()
+        # self.power_dock.setWidget(self.power_ui)
+        # self.power_dock.visibilityChanged.connect(self.update_menu_display_status)
+        # self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.power_dock, Qt.Orientation.Vertical)
         
         # motor test menu dock
         self.motor_menu_dock = QDockWidget("MotorTestMenu", self)
@@ -47,11 +47,11 @@ class ui_main(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.motor_menu_dock)
         
         # motor monitor dock
-        self.motor_monitor_dock = QDockWidget("MotorMonitor", self)
-        self.motor_monitor_ui = ui_MotorMornitor()
-        self.motor_monitor_dock.setWidget(self.motor_monitor_ui)
-        self.motor_monitor_dock.visibilityChanged.connect(self.update_menu_display_status)
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.motor_monitor_dock)
+        # self.motor_monitor_dock = QDockWidget("MotorMonitor", self)
+        # self.motor_monitor_ui = ui_MotorMornitor()
+        # self.motor_monitor_dock.setWidget(self.motor_monitor_ui)
+        # self.motor_monitor_dock.visibilityChanged.connect(self.update_menu_display_status)
+        # self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.motor_monitor_dock)
         
         
         
@@ -63,7 +63,7 @@ class ui_main(QMainWindow):
         
         # label
         label = QLabel("高雄科技大學電機系\n馬達特性測試系統")
-        label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
+        # label.setFont(QFont("Arial", 20, QFont.Weight.Bold))
         label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.mainlayout.addWidget(label)
         
@@ -107,11 +107,11 @@ class ui_main(QMainWindow):
         ## display menu
         self.display_menu = self.menu_bar.addMenu("Display")
 
-        self.power_supply_action = QAction("power_supply")
-        self.power_supply_action.setFont(font)
-        self.power_supply_action.setCheckable(True)
-        self.power_supply_action.triggered.connect(self.power_dock.setVisible)
-        self.display_menu.addAction(self.power_supply_action)
+        # self.power_supply_action = QAction("power_supply")
+        # self.power_supply_action.setFont(font)
+        # self.power_supply_action.setCheckable(True)
+        # self.power_supply_action.triggered.connect(self.power_dock.setVisible)
+        # self.display_menu.addAction(self.power_supply_action)
         
         self.motor_test_system_action = QAction("MotorTestSystem")
         self.motor_test_system_action.setFont(font)
@@ -119,11 +119,11 @@ class ui_main(QMainWindow):
         self.motor_test_system_action.triggered.connect(self.motor_menu_dock.setVisible)
         self.display_menu.addAction(self.motor_test_system_action)
         
-        self.motor_monitor_action = QAction("MotorMonitor")
-        self.motor_monitor_action.setFont(font)
-        self.motor_monitor_action.setCheckable(True)
-        self.motor_monitor_action.triggered.connect(self.motor_monitor_dock.setVisible)
-        self.display_menu.addAction(self.motor_monitor_action)
+        # self.motor_monitor_action = QAction("MotorMonitor")
+        # self.motor_monitor_action.setFont(font)
+        # self.motor_monitor_action.setCheckable(True)
+        # self.motor_monitor_action.triggered.connect(self.motor_monitor_dock.setVisible)
+        # self.display_menu.addAction(self.motor_monitor_action)
 
     
         
@@ -131,9 +131,9 @@ class ui_main(QMainWindow):
         self.about_menu = self.menu_bar.addAction("About")
         
     def update_menu_display_status(self):
-        self.power_supply_action.setChecked(self.power_dock.isVisible())
+        # self.power_supply_action.setChecked(self.power_dock.isVisible())
         self.motor_test_system_action.setChecked(self.motor_menu_dock.isVisible())
-        self.motor_monitor_action.setChecked(self.motor_monitor_dock.isVisible())
+        # self.motor_monitor_action.setChecked(self.motor_monitor_dock.isVisible())
 
 
 

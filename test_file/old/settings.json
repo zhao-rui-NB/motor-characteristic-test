@@ -1,0 +1,23 @@
+{
+    "PowerMeter": {
+        "COMPort": "",
+        "SlaveAddress": "0x81"
+    },
+    "PowerSupply": {
+        "IPAddress": "127.0.0.1",
+        "Port": "2268"
+    },
+    "SegmentDisplay": {
+        "COMPort": "com70",
+        "Addresses": {
+            "power_meter": {
+                "Vln_a": "0x6a"
+            },
+            "power_supply": {
+                "voltage": "0x71",
+                "frequency": "0x72",
+                "current_limit": "0x73"
+            }
+        }
+    }
+}

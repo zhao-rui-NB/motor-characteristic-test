@@ -10,6 +10,8 @@ from utils.PowerSupplyASP7100 import PowerSupplyASP7100
 from utils.PowerSupplyASR6450 import PowerSupplyASR6450
 from utils.SegmentDisplay import SegmentDisplay
 from utils.TorqueSensorDYN200 import TorqueSensorDYN200
+from utils.PlcMechanical import PlcMechanical
+from utils.PlcElectric import PlcElectric
 
 class DeviceManager:
     
@@ -22,6 +24,8 @@ class DeviceManager:
 
         self.power_supply: Union[PowerSupplyASP7100, PowerSupplyASR6450] = None
         self.power_meter: Union[PowerMeterSPM3, PowerMeterWT330] = None
+        self.plc_mechanical: PlcMechanical = None
+        self.plc_electric: PlcElectric = None
         self.torque_sensor: TorqueSensorDYN200 = None
         self.segment_display_dict: dict[int, SegmentDisplay] = {}
         
@@ -48,6 +52,20 @@ class DeviceManager:
             baudrate = pm_config.getint('baudrate')
             self.power_meter = PowerMeterWT330(com_port, baudrate)
             print(f"Power Meter Model: PowerMeterWT330, COM Port: {com_port}, Baudrate: {baudrate}")
+        
+        if 'PlcMechanical' in self.config:
+            plc_config = self.config['PlcMechanical']
+            ip = plc_config.get('ip')
+            port = plc_config.getint('port')
+            self.plc_mechanical = PlcMechanical(ip, port)
+            print(f"PlcMechanical, IP: {ip}, Port: {port}")
+            
+        if 'PlcElectric' in self.config:
+            plc_config = self.config['PlcElectric']
+            ip = plc_config.get('ip')
+            port = plc_config.getint('port')
+            self.plc_electric = PlcElectric(ip, port)
+            print(f"PlcElectric, IP: {ip}, Port: {port}")
 
     def _add_modbus_worker(self, com_port:str, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
         ''' if the com_port exists, will not create a new worker, all parameters will be same as the first worker '''
