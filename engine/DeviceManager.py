@@ -51,21 +51,18 @@ class DeviceManager:
             com_port = pm_config.get('com_port')
             baudrate = pm_config.getint('baudrate')
             self.power_meter = PowerMeterWT330(com_port, baudrate)
-            print(f"Power Meter Model: PowerMeterWT330, COM Port: {com_port}, Baudrate: {baudrate}")
         
         if 'PlcMechanical' in self.config:
             plc_config = self.config['PlcMechanical']
             ip = plc_config.get('ip')
             port = plc_config.getint('port')
             self.plc_mechanical = PlcMechanical(ip, port)
-            print(f"PlcMechanical, IP: {ip}, Port: {port}")
             
-        if 'PlcElectric' in self.config:
-            plc_config = self.config['PlcElectric']
+        if 'PlcElectrical' in self.config:
+            plc_config = self.config['PlcElectrical']
             ip = plc_config.get('ip')
             port = plc_config.getint('port')
             self.plc_electric = PlcElectric(ip, port)
-            print(f"PlcElectric, IP: {ip}, Port: {port}")
 
     def _add_modbus_worker(self, com_port:str, baudrate=9600, parity='N', stopbits=1, bytesize=8, timeout=0.5):
         ''' if the com_port exists, will not create a new worker, all parameters will be same as the first worker '''
@@ -86,6 +83,15 @@ class DeviceManager:
         
         if self.power_meter is not None:
             self.power_meter.worker.stop()
+            self.power_meter = None
+
+        if self.plc_mechanical is not None:
+            self.plc_mechanical.worker.stop()
+            self.plc_mechanical = None
+        
+        if self.plc_electric is not None:
+            self.plc_electric.worker.stop()
+            self.plc_electric = None
             
         # for port in list(self.serial_port_workers.keys()):
         #     self.serial_port_workers[port].stop()
@@ -104,17 +110,26 @@ if __name__=="__main__":
     
     
     device_manger.load_devices_from_ini('device.ini')
-    
-    
-    
-    
     time.sleep(1)
     
+    print('power_supply', device_manger.power_supply.get_idn())
+    print('power_meter', device_manger.power_meter.get_serial_number())
+
+    print('plc_mechanical', device_manger.plc_mechanical)
+    print('plc_electric', device_manger.plc_electric)
     
-    print('power_supply', device_manger.power_supply)
-    print('power_meter', device_manger.power_meter)
-    print('torque_sensor', device_manger.torque_sensor)
-    print('segment_display_dict', device_manger.segment_display_dict)
+    
+    
+    
+    
+    # print('power_supply', device_manger.power_supply)
+    # print('power_meter', device_manger.power_meter)
+    # print('torque_sensor', device_manger.torque_sensor)
+    # print('segment_display_dict', device_manger.segment_display_dict)
+
+
+    # release 
+    device_manger.release_resources()
             
     
     

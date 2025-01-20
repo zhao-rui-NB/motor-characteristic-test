@@ -12,7 +12,6 @@ from .ScpiSocketWorker import ScpiSocketWorker
 class PowerSupplyASR6450:
     def __init__(self, host, port):
         self.worker = ScpiSocketWorker(host, port)
-        self.worker.start()
 
     def _split_response(self, response, to_1d=True):
         if response is None:

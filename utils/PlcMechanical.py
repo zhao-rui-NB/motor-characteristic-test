@@ -8,6 +8,8 @@ class PlcMechanical:
         
     def get_mechanical_data(self):
         result = self.worker.read_holding_registers(0x0000, 4)
+        if None in result:
+            return {'speed': None, 'torque': None}
         
         speed = self.worker.registers_to_float(result[0:2])
         torque = self.worker.registers_to_float(result[2:4])

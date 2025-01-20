@@ -103,10 +103,30 @@ class PlcElectric:
     
     
 if __name__ == '__main__':
+    import time
+
     plc = PlcElectric('192.168.0.102', 502)
     
     print(plc.set_motor_output_off())
     print(plc.set_ps_output_off())
+
+
+    # plc.set_ps_output_single()
+    # time.sleep(1)
+    # plc.set_motor_output_single()
+
+
+    # plc.set_ps_output_three()
+    # time.sleep(1)
+    # plc.set_motor_output_three()
+
+
+    print('get_is_ps_output_single', plc.get_is_ps_output_single())
+    print('get_is_ps_output_three', plc.get_is_ps_output_three())
+
+
+
+    
     
     
     

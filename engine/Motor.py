@@ -75,11 +75,36 @@ class Motor:
     def analyze_dc_resistance(self):
         print(f"Analyzing DC Resistance from {self.data_dc_resistance[-1]['timestamp']}") 
         raw_data = self.data_dc_resistance[-1]['raw_data']
-        voltage = [ d['power_meter']['V1'] for d in raw_data ]
-        current = [ d['power_meter']['I1'] for d in raw_data ]
+
+        if self.is_single_phase():
+            voltage = [ d['power_meter']['V1'] for d in raw_data ]
+            current = [ d['power_meter']['I1'] for d in raw_data ]
+        else:
+            group_num = len(raw_data)//3
+
+            print('group_num', group_num)
+
+            voltage = []
+            current = []
+            voltage.extend([ d['power_meter']['V1'] for d in raw_data[:group_num] ])
+            voltage.extend([ d['power_meter']['V1'] for d in raw_data[group_num:group_num*2] ])
+            voltage.extend([ d['power_meter']['V3'] for d in raw_data[group_num*2:] ])
+
+            current.extend([ d['power_meter']['I1'] for d in raw_data[:group_num] ])
+            current.extend([ d['power_meter']['I1'] + d['power_meter']['I3'] for d in raw_data[group_num:group_num*2] ])
+            current.extend([ d['power_meter']['I3'] for d in raw_data[group_num*2:] ])
+
+
+        print('voltage', voltage)
+        print('current', current)
+
         resistance = [ v / i for v, i in zip(voltage, current) ]
-        self.result_dc_resistance = sum(resistance) / len(resistance)
+
+        self.result_dc_resistance = sum(resistance) / len(resistance) / 1.5
         print(f"DC Resistance: {self.result_dc_resistance}")
+
+
+        
     
     def analyze_open_circuit(self):
         pass
@@ -171,9 +196,18 @@ if __name__ == '__main__':
 
     
     
-    # motor = Motor()
+    motor = Motor()
     # with open('test_file/motor_2025.json', 'r') as f:
-    #     data = json.load(f)
-    #     motor.from_dict(data)
+    with open('test_file/motor_20250120_160710.json', 'r') as f:
+        data = json.load(f)
+        motor.from_dict(data)
+
+    motor.analyze_dc_resistance()
+
     # print(json.dumps(motor.to_dict(), indent=4))    
     
+
+    # save 
+    timestamp = motor.make_time_stamp()
+    with open(f'test_file/motor_20250120_160710_ana.json', 'w') as f:
+        json.dump(motor.to_dict(), f, indent=4)

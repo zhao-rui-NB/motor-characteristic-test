@@ -43,9 +43,8 @@ class PowerMeterWT330:
         return response_list
     
     def _generic_command(self, cmd, type_list=None):
-        
         success, reponse = self.worker.send_command(cmd)
-        
+
         if not success:
             print(f"[PowerMeterWT330] Command failed: {cmd}")
             
@@ -65,38 +64,45 @@ class PowerMeterWT330:
     #### power meter api
     
     # serial number
-    def get_serial_number(self, callback):
-        self._generic_command("*IDN?", callback)
+    def get_serial_number(self):
+        return self._generic_command("*IDN?")
         
     # reset
-    def reset(self, callback):
-        self._generic_command("*RST", callback)
+    def reset(self):
+        return self._generic_command("*RST")
         
     # clear status
-    def clear_status(self, callback):
-        self._generic_command("*CLS", callback)
+    def clear_status(self):
+        return self._generic_command("*CLS")
     
-    '''
-    NUMeric Group, (meter real time data)
-    
-    '''    
-    
+    # [:INPut]:WIRing
+    def set_input_wiring(self, wiring):
+        # (P1W2|P1W3|P3W3|P3W4|V3A3)
+        '''
+            P1W2 = Single-phase, two-wire system [1P2W] 
+            P1W3 = Single-phase, three-wire system [1P3W] 
+            P3W3 = Three-phase, three-wire system [3P3W] 
+            P3W4 = Three-phase, four-wire system [3P4W] 
+            V3A3 = Three-phase, three-wire system with a three-voltage, three-current method [3V3A]
+        '''
+        return self._generic_command(f"INPut:WIRing {wiring}")
+            
     # NUMeric:FORMat
-    def set_numeric_format(self, format, callback):
+    def set_numeric_format(self, format):
         ''' 
             format: can only be ASC or FLO
             - ASC: ASCII
             - FLO: float
         '''
-        self._generic_command(f"NUMeric:FORMat {format}", callback)
+        return self._generic_command(f"NUMeric:FORMat {format}")
     
-    def get_numeric_format(self, callback):
-        self._generic_command("NUMeric:FORMat?", callback)    # todo str type list 
+    def get_numeric_format(self):
+        return self._generic_command("NUMeric:FORMat?")    # todo str type list 
         
         
     # Preset Patterns for Numeric Data Items
     # :NUMeric[:NORMal]:PRESet, 
-    def set_preset_read_pattern(self, pattern_id, callback):
+    def set_preset_read_pattern(self, pattern_id):
         '''
             Pattern 1
                 ITEM<x>     Function    Element
@@ -130,11 +136,11 @@ class PowerMeterWT330:
 
 
         '''
-        self._generic_command(f"NUMeric:NORMal:PRESet {pattern_id}", callback)
+        return self._generic_command(f"NUMeric:NORMal:PRESet {pattern_id}")
     
     # read the numeric data
     # :NUMeric[:NORMal]:VALue?
-    def read_data(self, callback):
+    def read_data(self):
         '''
             LAMBDA : 功率因數
             PHI : 功率因數角
@@ -156,62 +162,72 @@ class PowerMeterWT330:
         key3 = ['V3', 'I3', 'P3', 'S3', 'Q3', 'LAMBDA3', 'PHI3', 'FU3', 'FI3']
         key_sigma = ['V_SIGMA', 'I_SIGMA', 'P_SIGMA', 'S_SIGMA', 'Q_SIGMA', 'LAMBDA_SIGMA', 'PHI_SIGMA', 'FU_SIGMA', 'FI_SIGMA']
         
-        def process_resault(result):
-            # all resault to float
-            result = [float(x) for x in result]
-            if result:
-                data = {}
-                for i, k in enumerate(key1):
-                    data[k] = result[i]
-                for i, k in enumerate(key2):
-                    data[k] = result[i + 10]
-                for i, k in enumerate(key3):
-                    data[k] = result[i + 20]
-                for i, k in enumerate(key_sigma):
-                    data[k] = result[i + 30]
-            callback(data)
+        result = self._generic_command("NUMeric:NORMal:VALue?")
+        result = [float(x) for x in result]
+        if result:
+            data = {}
+            for i, k in enumerate(key1):
+                data[k] = result[i]
+            for i, k in enumerate(key2):
+                data[k] = result[i + 10]
+            for i, k in enumerate(key3):
+                data[k] = result[i + 20]
+            for i, k in enumerate(key_sigma):
+                data[k] = result[i + 30]
+            return data
+        else:
+            data = {}
+            for i, k in enumerate(key1):
+                data[k] = None
+            for i, k in enumerate(key2):
+                data[k] = None
+            for i, k in enumerate(key3):
+                data[k] = None
+            for i, k in enumerate(key_sigma):
+                data[k] = None
 
-        self._generic_command("NUMeric:NORMal:VALue?", callback=process_resault)
-        
-        
+            return data
+    
+    # :NUMeric[:NORMal]:NUMber
+    def set_list_number(self, number):
+        return self._generic_command(f"NUMeric:NORMal:NUMber {number}")
+    
+
+    # [:INPut]:VOLTage:RANGe
+    def set_voltage_range(self, range):
+        '''
+            <Voltage> = 15, 30, 60, 150, 300, 600(V)
+        '''
+
+        return self._generic_command(f"INPut:VOLTage:RANGe {range}")
+
+
 if __name__ == "__main__":
     import time
     import json
 
     wt330 = PowerMeterWT330("COM1")
+
+    # wt330.reset()
+    # time.sleep(5)
+
+    print('\nget_serial_number', wt330.get_serial_number())
     
-    def print_callback(result):
-        # if is dict type, print it in json format
-        if isinstance(result, dict):
-            print(json.dumps(result, indent=4))
-        else:
-            print(f"Received: {result}")
     
-    print('\nget_serial_number')
-    wt330.get_serial_number(print_callback)
-    time.sleep(0.1)
+    wt330.set_numeric_format("ASC")
+    time.sleep(1)   
+    wt330.set_preset_read_pattern(2) 
+    time.sleep(1)
+    wt330.set_list_number(40)
+
     
-    # print('\nget_numeric_format')
-    # wt330.get_numeric_format(print_callback)
-    # time.sleep(0.1)
+    # wring 
+    wt330.set_input_wiring("P3W3")
+    time.sleep(1)
+
     
 
-    # print('\nset_numeric_format')
-    # wt330.set_numeric_format("ASC", print_callback)
-    # time.sleep(0.1)
-    
-
-    # print('\nget_numeric_format')
-    # wt330.get_numeric_format(print_callback)
-    # time.sleep(0.1)
-    
-    print('\nset_preset_read_pattern')    
-    wt330.set_preset_read_pattern(2, print_callback)
-    time.sleep(0.1)
-
-    print('\nread_data')
-    wt330.read_data(print_callback)
-    time.sleep(5)
+    print('\nread_data' , wt330.read_data())
     
     
 
