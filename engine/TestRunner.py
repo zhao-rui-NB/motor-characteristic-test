@@ -5,13 +5,23 @@ from engine.DeviceManager import DeviceManager
 from engine.DataSender import DataSender
 from engine.Motor import Motor
 
+'''
+init system
+motor 3
+|-- system 3
+motor 1 
+|-- current < 2A --> system 3
+|-- current >= 2A --> system 1   
+
+'''
+
 
 class TestRunner:
     
     def __init__(self,device_manager: DeviceManager):
         self.device_manager = device_manager
 
-    def system_init(self, phase_mode:int):
+    def system_init(self, system_phase_mode:int):
         '''
             this function is used to initialize the system
             - reset all devices to default
@@ -19,7 +29,7 @@ class TestRunner:
             - setting the power supply output connection
         '''
         
-        is_single_phase = True if phase_mode == 1 else False
+        is_system_single_phase = True if system_phase_mode == 1 else False
         
         # check device connection
         ps = self.device_manager.power_supply.get_idn()
@@ -37,13 +47,13 @@ class TestRunner:
 
         ps_single = self.device_manager.plc_electric.get_is_ps_output_single()
         ps_three = self.device_manager.plc_electric.get_is_ps_output_three()
-        c1 = is_single_phase and not ps_single
-        c2 = not is_single_phase and not ps_three
+        c1 = is_system_single_phase and not ps_single
+        c2 = not is_system_single_phase and not ps_three
         if c1 or c2:
             self.device_manager.plc_electric.set_ps_output_off() # b ASR6450 輸出關閉(off)
             time.sleep(1)
             # setup system 1P/2W or 3P/4W
-            if is_single_phase: # c 設定外部接線開關(三相:Y03 ON, 單相低電流:Y03 ON, 單相高電流:Y01 ON,)
+            if is_system_single_phase: # c 設定外部接線開關(三相:Y03 ON, 單相低電流:Y03 ON, 單相高電流:Y01 ON,)
                 self.device_manager.plc_electric.set_ps_output_single()
                 time.sleep(1)
                 self.device_manager.power_supply.set_output_phase_mode(1) # phase_para 0: 3P4W, 1: 1P2W, 2: 1P3W
@@ -60,7 +70,7 @@ class TestRunner:
 
         r1 = self.device_manager.plc_electric.get_is_ps_output_single()
         r3 = self.device_manager.plc_electric.get_is_ps_output_three()
-        if is_single_phase and not r1 or not is_single_phase and not r3:
+        if is_system_single_phase and not r1 or not is_system_single_phase and not r3:
             raise ValueError('PLC Electric Output Setting Error') 
         
         self.device_manager.plc_mechanical.set_break(0)
@@ -78,10 +88,97 @@ class TestRunner:
         self.device_manager.power_meter.set_list_number(40)
         
         return True
+    
+    def setup_ac_balance_and_check(self, motor:Motor):
+        
+        if motor.rated_voltage < 130:
+            self.device_manager.power_meter.set_voltage_range(150)
+        elif motor.rated_voltage < 250:
+            self.device_manager.power_meter.set_voltage_range(300)
+        else:
+            self.device_manager.power_meter.set_voltage_range(600)
+        
+        # e 三相模式 設定ASR6450 為平衡三相系統
+        self.device_manager.power_supply.set_phase_mode(1) # 0:UNBalance, 1:Balance  
+        # f 三相模式 設定ASR6450 為三相電壓同步調整系統
+        self.device_manager.power_supply.set_instrument_edit(1)
+        self.device_manager.power_supply.set_source_mode(1) # 1 AC-INT 
+        # g 設定ASR6450 電壓命令
+        self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732)
+        # h 設定ASR6450 最大電流命令(無載電流*120%)
+        self.device_manager.power_supply.set_current_limit(15)
+
+        # i 設定ASR6450 頻率輸出命令
+        self.device_manager.power_supply.set_frequency(motor.frequency)
+        # j 設定ASR6450 電壓輸出命令
+        self.device_manager.power_supply.set_output(1)
+        time.sleep(1)
+
+        # k 讀取 ASR6450 電壓與頻率 (核對電壓輸出)
+        # l 讀取 WT333 電壓與頻率 (核對電壓輸出)
+        data:dict = self.device_manager.power_meter.read_data()
+        v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
+        f_str = f"F1:{data.get('FU1')}"
+        print(f'[setup_ac_balance_and_check] read from power meter, {v_str}, {f_str}')
+
+        # check voltage, and frequency in 30% range
+        if abs(data.get('V1') - motor.rated_voltage)/motor.rated_voltage > 0.03:
+            print('[setup_ac_balance_and_check] V1 Voltage Read Error')
+            return False
+        if abs(data.get('V2') - motor.rated_voltage)/motor.rated_voltage > 0.03:
+            print('[setup_ac_balance_and_check] V2 Voltage Read Error')
+            return False
+        if abs(data.get('V3') - motor.rated_voltage)/motor.rated_voltage > 0.03:
+            print('[setup_ac_balance_and_check] V3 Voltage Read Error')
+            return False
+        if abs(data.get('FU1') - motor.frequency)/motor.frequency > 0.03:
+            print('[setup_ac_balance_and_check] Frequency Read Error')
+            return False
+        
+        self.device_manager.power_supply.set_voltage(0)
+
+        print(f"[setup_ac_balance_and_check] system check done")
+    
+    def setup_ac_single_phase_and_check(self, motor:Motor):
+        if motor.rated_voltage < 130:
+            self.device_manager.power_meter.set_voltage_range(150)
+        elif motor.rated_voltage < 250:
+            self.device_manager.power_meter.set_voltage_range(300)
+        else:
+            self.device_manager.power_meter.set_voltage_range(600)
+        
+        self.device_manager.power_supply.set_source_mode(1) # 1 AC-INT 
+        # g 設定ASR6450 電壓命令
+        self.device_manager.power_supply.set_voltage(motor.rated_voltage)
+        self.device_manager.power_supply.set_current_limit(15)
+        self.device_manager.power_supply.set_frequency(motor.frequency)
+        self.device_manager.power_supply.set_output(1)
+        time.sleep(1)
+
+        # k 讀取 ASR6450 電壓與頻率 (核對電壓輸出)
+        # l 讀取 WT333 電壓與頻率 (核對電壓輸出)
+        data:dict = self.device_manager.power_meter.read_data()
+        v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
+        f_str = f"F1:{data.get('FU1')}"
+        print(f'[setup_ac_balance_and_check] read from power meter, {v_str}, {f_str}')
+
+        # check voltage, and frequency in 30% range
+        if abs(data.get('V1') - motor.rated_voltage)/motor.rated_voltage > 0.03:
+            print('[setup_ac_balance_and_check] V1 Voltage Read Error')
+            return False
+        if abs(data.get('FU1') - motor.frequency)/motor.frequency > 0.03:
+            print('[setup_ac_balance_and_check] Frequency Read Error')
+            return False
+        
+        input('Press Enter to continue:')
+
+        self.device_manager.power_supply.set_voltage(0)
+
+        print(f"[setup_ac_single_phase_and_check] system check done")
+
     # ok
     def test_dc_resistance(self, motor:Motor):
-        self.system_init(motor.power_phases)  
-        is_single_phase = True if motor.power_phases == 1 else False      
+        self.system_init(3) # 3 phase system 
 
         self.device_manager.power_supply.set_instrument_edit(1) # 同時調整
         self.device_manager.power_supply.set_source_mode(2) # 0 DC-INT # e 設定ASR6450 DC+INT 三相系統
@@ -99,7 +196,7 @@ class TestRunner:
         # l 讀取 ASR6450 電壓(核對電壓輸出)
         # m 讀取 WT333 電壓 (核對電壓輸出)
         test_dc_voltage = 1
-        for i in range(1 if is_single_phase else 3):
+        for i in range(1 if motor.is_single_phase() else 3):
             self.device_manager.power_supply.set_instrument_edit(1) # 1 All
             self.device_manager.power_supply.set_voltage_offset(0) # set all dc offset to 0
             
@@ -139,28 +236,17 @@ class TestRunner:
             # input(f'read finish {i}, press Enter to continue')
         
         print(f"[run_dc_resistance_test] system check done")
-            
-        # set all dc offset to 0
-        # self.device_manager.power_supply.set_instrument_edit(1) # 1 All
-        # self.device_manager.power_supply.set_voltage_offset(0) # set all dc offset to 0
-        # print('[run_dc_resistance_test] System check done')
         
-        # n 提示 ”待測馬達請脫離扭矩測試系統”
-        # o 等待啟動確認按鍵(提示輸出確認?)
         print('[run_dc_resistance_test] ”待測馬達請脫離扭矩測試系統”')
         input('Press Enter to continue:')
         
-        # p 設定外部輸出開關 (啟動測試電壓輸出Y24 OR Y25)
-        if is_single_phase:
-            self.device_manager.plc_electric.set_motor_output_single()
-        else:
-            self.device_manager.plc_electric.set_motor_output_three()
-            
-    
+
+        self.device_manager.plc_electric.set_motor_output_three()
+
         # q 連續  讀取 WT333  [電壓Vdc, 電流Idc, 功率Pdc ]
         # r 逐漸增加直流輸出電壓 , 直到電流 = [滿載電流 ]
         raw_data = []
-        for i in range(1 if is_single_phase else 3):
+        for i in range(motor.power_phases): 
             self.device_manager.power_supply.set_instrument_edit(1) # 1 All
             self.device_manager.power_supply.set_voltage_offset(0) # set all dc offset to 0
             self.device_manager.power_supply.set_instrument_edit(0) # 0 Each
@@ -208,90 +294,23 @@ class TestRunner:
         return True
     # ok
     def run_open_circuit_test(self, motor:Motor):
-        self.system_init(motor.power_phases)
-        # 
-        if motor.rated_voltage < 130:
-            self.device_manager.power_meter.set_voltage_range(150)
-        elif motor.rated_voltage < 250:
-            self.device_manager.power_meter.set_voltage_range(300)
-        else:
-            self.device_manager.power_meter.set_voltage_range(600)
+        # self.system_init(motor.power_phases)
+        self.system_init(3) # 3 phase system 
 
-
-        is_single_phase = True if motor.power_phases == 1 else False
+        self.setup_ac_balance_and_check(motor)
         
-        # e 三相模式 設定ASR6450 為平衡三相系統
-        self.device_manager.power_supply.set_phase_mode(1) # 0:UNBalance, 1:Balance  
-        # f 三相模式 設定ASR6450 為三相電壓同步調整系統
-        self.device_manager.power_supply.set_instrument_edit(1)
-        self.device_manager.power_supply.set_source_mode(1) # 1 AC-INT 
-        # g 設定ASR6450 電壓命令
-        self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732)
-        # h 設定ASR6450 最大電流命令(無載電流*120%)
-        # self.device_manager.power_supply.set_current_limit(motor.rated_current)
-        self.device_manager.power_supply.set_current_limit(15)
-
-        # i 設定ASR6450 頻率輸出命令
-        self.device_manager.power_supply.set_frequency(motor.frequency)
-        # j 設定ASR6450 電壓輸出命令
-        self.device_manager.power_supply.set_output(1)
-        time.sleep(1)
-
-        
-        # k 讀取 ASR6450 電壓與頻率 (核對電壓輸出)
-        # l 讀取 WT333 電壓與頻率 (核對電壓輸出)
-        data:dict = self.device_manager.power_meter.read_data()
-        v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
-        f_str = f"F1:{data.get('FU1')}"
-        print(f'[run_open_circuit_test] read from power meter, {v_str}, {f_str}')
-        #### todo: check voltage
-
-        # check voltage, and frequency in 30% range
-        if data.get('V1') is None or data.get('V2') is None or data.get('V3') is None:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('V1') - motor.rated_voltage)/motor.rated_voltage > 0.03:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('V2') - motor.rated_voltage)/motor.rated_voltage > 0.03:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('V3') - motor.rated_voltage)/motor.rated_voltage > 0.03:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('FU1') - motor.frequency)/motor.frequency > 0.03:
-            print('[run_open_circuit_test] Power Meter Frequency Read Error')
-            return False
-        
-        print(f"[run_open_circuit_test] system check done")
-
-
-
-        # return
-        
-        
-        # m 提示 ”待測馬達請脫離扭矩測試系統”
-        # n 等待啟動確認按鍵(提示輸出確認?)
         print('[run_open_circuit_test] ”待測馬達請脫離扭矩測試系統”')
         input('Press Enter to continue:')   
 
 
-        # self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732)
         self.device_manager.power_supply.set_voltage(0)
-
-        # o 設定外部輸出開關 (啟動測試電壓輸出Y24 OR Y25)
-        if is_single_phase:
-            self.device_manager.plc_electric.set_motor_output_single()
-        else:
-            self.device_manager.plc_electric.set_motor_output_three()
-
+        self.device_manager.plc_electric.set_motor_output_three()
         # set voltage 30% - 100%
         for i in range(30, 100+1, 5):
             self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732*i/100)
             time.sleep(0.2)
 
         print('[run_open_circuit_test] 啟動完成')
-
         
             
         raw_data = []
@@ -321,70 +340,15 @@ class TestRunner:
         return True
     # 堵轉試驗 ok
     def run_lock_rotor_test(self, motor:Motor):
-        self.system_init(motor.power_phases)
+        self.system_init(3) # 3 phase system
+        self.setup_ac_balance_and_check(motor)
         self.device_manager.power_meter.set_voltage_range(60)
-        is_single_phase = True if motor.power_phases == 1 else False
-        
-        check_system_voltage = 3
-
-        # e 三相模式 設定ASR6450 為平衡三相系統
-        self.device_manager.power_supply.set_phase_mode(1) # 0:UNBalance, 1:Balance  
-        # f 三相模式 設定ASR6450 為三相電壓同步調整系統
-        self.device_manager.power_supply.set_instrument_edit(1)
-        self.device_manager.power_supply.set_source_mode(1) # 1 AC-INT 
-        # g 設定ASR6450 電壓命令
-        self.device_manager.power_supply.set_voltage(check_system_voltage/1.732)
-        # h 設定ASR6450 最大電流命令(無載電流*120%)
-        # self.device_manager.power_supply.set_current_limit(motor.rated_current)
-        self.device_manager.power_supply.set_current_limit(15)
-
-        # i 設定ASR6450 頻率輸出命令
-        self.device_manager.power_supply.set_frequency(motor.frequency)
-        # j 設定ASR6450 電壓輸出命令
-        self.device_manager.power_supply.set_output(1)
-        time.sleep(1)
-
-        
-        # k 讀取 ASR6450 電壓與頻率 (核對電壓輸出)
-        # l 讀取 WT333 電壓與頻率 (核對電壓輸出)
-        data:dict = self.device_manager.power_meter.read_data()
-        v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
-        f_str = f"F1:{data.get('FU1')}"
-        print(f'[run_open_circuit_test] read from power meter, {v_str}, {f_str}')
-        #### todo: check voltage
-
-        # check_system_voltage
-        # check voltage, and frequency in 30% range
-        if data.get('V1') is None or data.get('V2') is None or data.get('V3') is None:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('V1') - check_system_voltage)/check_system_voltage > 0.1:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('V2') - check_system_voltage)/check_system_voltage > 0.1:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('V3') - check_system_voltage)/check_system_voltage > 0.1:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('FU1') - motor.frequency)/motor.frequency > 0.03:
-            print('[run_open_circuit_test] Power Meter Frequency Read Error')
-            return False
-        
-        print(f"[run_open_circuit_test] system check done")
-        # m. 提示 ”待測馬達請安裝至扭矩測試系統”
-        # n. 制動輸出(DA OUTPUT)輸出50% (2000 Count)
         self.device_manager.plc_mechanical.set_break(2000)
         
-        # o. 等待啟動確認按鍵(提示輸出確認?)
         print('[run_lock_rotor_test] ”待測馬達請安裝至扭矩測試系統”')
         input('Press Enter to continue:')
         
-        # p. 設定外部輸出開關 (啟動測試電壓輸出Y24 OR Y25)
-        if is_single_phase:
-            self.device_manager.plc_electric.set_motor_output_single()
-        else:
-            self.device_manager.plc_electric.set_motor_output_three()
+        self.device_manager.plc_electric.set_motor_output_three()
             
         # q. 連續  讀取 WT333  [電壓Vbk, 電流Ibk, 功率Pbk, 功率因數PFbk ]
         # r. 逐漸增加輸出電壓 , 直到電流 = [滿載電流 ]
@@ -420,86 +384,39 @@ class TestRunner:
         print('[run_lock_rotor_test] Test Done')
         return True
     # 負載試驗 ok
-    def run_load_test(self, motor:Motor):
-        self.system_init(motor.power_phases)
-        # 
-        if motor.rated_voltage < 130:
-            self.device_manager.power_meter.set_voltage_range(150)
-        elif motor.rated_voltage < 250:
-            self.device_manager.power_meter.set_voltage_range(300)
+    def run_load_test(self, motor:Motor, run_with_single_phase=False):
+        if run_with_single_phase:
+            self.system_init(1)
+            self.setup_ac_single_phase_and_check(motor)
+
         else:
-            self.device_manager.power_meter.set_voltage_range(600)
-
-
-        is_single_phase = True if motor.power_phases == 1 else False
-        
-        # e 三相模式 設定ASR6450 為平衡三相系統
-        self.device_manager.power_supply.set_phase_mode(1) # 0:UNBalance, 1:Balance  
-        # f 三相模式 設定ASR6450 為三相電壓同步調整系統
-        self.device_manager.power_supply.set_instrument_edit(1)
-        self.device_manager.power_supply.set_source_mode(1) # 1 AC-INT 
-        # g 設定ASR6450 電壓命令
-        self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732)
-        # h 設定ASR6450 最大電流命令(無載電流*120%)
-        # self.device_manager.power_supply.set_current_limit(motor.rated_current)
-        self.device_manager.power_supply.set_current_limit(15)
-
-        # i 設定ASR6450 頻率輸出命令
-        self.device_manager.power_supply.set_frequency(motor.frequency)
-        # j 設定ASR6450 電壓輸出命令
-        self.device_manager.power_supply.set_output(1)
-        time.sleep(1)
+            self.system_init(3) # 3 phase system
+            self.setup_ac_balance_and_check(motor)
 
         
-        # k 讀取 ASR6450 電壓與頻率 (核對電壓輸出)
-        # l 讀取 WT333 電壓與頻率 (核對電壓輸出)
-        data:dict = self.device_manager.power_meter.read_data()
-        v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
-        f_str = f"F1:{data.get('FU1')}"
-        print(f'[run_open_circuit_test] read from power meter, {v_str}, {f_str}')
-        #### todo: check voltage
-
-        # check voltage, and frequency in 30% range
-        if data.get('V1') is None or data.get('V2') is None or data.get('V3') is None:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('V1') - motor.rated_voltage)/motor.rated_voltage > 0.03:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('V2') - motor.rated_voltage)/motor.rated_voltage > 0.03:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('V3') - motor.rated_voltage)/motor.rated_voltage > 0.03:
-            print('[run_open_circuit_test] Power Meter Voltage Read Error')
-            return False
-        if abs(data.get('FU1') - motor.frequency)/motor.frequency > 0.03:
-            print('[run_open_circuit_test] Power Meter Frequency Read Error')
-            return False
-        
-        print(f"[run_open_circuit_test] system check done")
-        
-        # m 提示 ”待測馬達請脫離扭矩測試系統”
-        # n 等待啟動確認按鍵(提示輸出確認?)
         print('[run_open_circuit_test] ”待測馬達請連結至負載測試系統”')
-        input('Press Enter to continue:')   
 
-
-        # self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732)
         self.device_manager.power_supply.set_voltage(0)
-
-        # o 設定外部輸出開關 (啟動測試電壓輸出Y24 OR Y25)
-        if is_single_phase:
+        if run_with_single_phase:
             self.device_manager.plc_electric.set_motor_output_single()
         else:
             self.device_manager.plc_electric.set_motor_output_three()
 
         # set voltage 30% - 100%
-        # for i in range(30, 100+1, 5):
-        for i in range(30, 50+1, 5):
-            self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732*i/100)
-            time.sleep(0.2)
+        for i in range(30, 100+1, 5):
+            if run_with_single_phase:
+                self.device_manager.power_supply.set_voltage(motor.rated_voltage*i/100)
+                time.sleep(1)
+            else:
+                self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732*i/100)
+                if motor.is_single_phase():
+                    time.sleep(0.5)
+                else:
+                    time.sleep(0.2)
 
         print('[run_open_circuit_test] 啟動完成')
+
+        input('啟動完成, Press Enter to continue:')
         
         # q. 逐漸增加制動控制的輸出電流(DA output, 加載)
         # r. 連續  讀取 WT333  [電壓V 電流I, 功率P, 功率因數PF ]
@@ -515,8 +432,18 @@ class TestRunner:
             # print .3f
             print(f"[run_load_test] speed:{mechanical['speed']}, torque:{mechanical['torque']:.2f}, DA:{da}, V1:{power_meter.get('V1')}, I1:{power_meter.get('I1')}")
 
-            # if mechanical['speed'] <= motor.speed*0.5:
-            if mechanical['speed'] <= 1:
+            # check single phase motor is over current
+            # if over current switch to single phase mode run again
+            # if motor.is_single_phase() and power_meter.get('I1') > 12:
+            if motor.is_single_phase() and not run_with_single_phase and power_meter.get('I1') > 5:
+                self.device_manager.plc_electric.set_motor_output_off()
+                time.sleep(1)
+                self.device_manager.power_supply.set_output(0)
+                print('[run_load_test] ERROR, Single Phase Motor Over Current')
+                print('[run_load_test] Retry with Single Phase Mode...')
+                return self.run_load_test(motor, run_with_single_phase=True)
+
+            if mechanical['speed'] <= motor.speed*0.5:
                 break
 
         # t. 關閉測試電壓輸出Y27
@@ -528,73 +455,112 @@ class TestRunner:
         # v. 結束測試 
     # 鐵損分離試驗
     def run_separate_excitation_test(self, motor:Motor):
-        self.system_init(motor.power_phases)
-        is_single_phase = True if motor.power_phases == 1 else False
-        
-        # e. 三相模式 設定ASR6450 為平衡三相系統
-        self.device_manager.power_supply.set_phase_mode(1) # 0:UNBalance, 1:Balance
-        # f. 三相模式 設定ASR6450 為三相電壓同步調整系統
-        self.device_manager.power_supply.set_instrument_edit(1)
-        # g. 設定ASR6450 電壓命令
-        self.device_manager.power_supply.set_voltage(5)
-        # h. 設定ASR6450 最大電流命令(無載電流*120%)
-        self.device_manager.power_supply.set_source_mode(1) # 1 AC-INT 
-        self.device_manager.power_supply.set_current_limit(motor.rated_current*1.2)
-        # i. 設定ASR6450 頻率輸出命令
-        self.device_manager.power_supply.set_frequency(motor.frequency)
-        # j. 設定ASR6450 電壓輸出命令
-        self.device_manager.power_supply.set_output(1)
-        # k. 讀取 ASR6450 電壓與頻率 (核對電壓輸出)
-        # l. 讀取 WT333 電壓與頻率 (核對電壓輸出)
-        data:dict = self.device_manager.power_meter.read_data()
-        v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
-        f_str = f"F1:{data.get('F1')}, F2:{data.get('F2')}, F3:{data.get('F3')}"
-        print(f'[run_lock_rotor_test] read from power meter, {v_str}, {f_str}')
-        
+        self.system_init(3) # 3 phase system
+        self.setup_ac_balance_and_check(motor)
 
-        # m. 提示 ”待測馬達請脫離扭矩測試系統”
-        # n. 等待啟動確認按鍵(提示輸出確認?)
         print('[run_separate_excitation_test] ”待測馬達請脫離扭矩測試系統”')
         input('Press Enter to continue:')
         
         # o. 設定ASR6450 輸出電壓=20%額定電壓(減少啟動電流衝擊) 設定外部輸出開關 (啟動測試電壓輸出Y24 OR Y25) , 逐漸調整輸出電壓到額定電壓的80%(每0.5 Sec增加 5%)等待3 Sec 讓系統穩定後, 開是測試:
-        if is_single_phase:
-            self.device_manager.plc_electric.set_motor_output_single()
-        else:
-            self.device_manager.plc_electric.set_motor_output_three()
+        self.device_manager.plc_electric.set_motor_output_three()
             
-        for i in range(0.2, 1, 0.05): # 20% to 100%
-            self.device_manager.power_supply.set_voltage(i*motor.rated_voltage)
-            time.sleep(0.5)
-        self.device_manager.power_supply.set_voltage(motor.rated_voltage)
-        time.sleep(3)
-        
-        
+        # set voltage 30% - 100%
+        for i in range(30, 100+1, 5):
+            self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * i/100)
+            time.sleep(0.2)
+        print('[run_open_circuit_test] 啟動完成')
+
+        # return    
+    
         # p. 連續  讀取 WT333  [電壓Vt5, 電流It5, 功率Pt5, 功率因數PFt5]
         # q. 逐漸調整輸出電壓到額定電壓的120%  [80%-120%]
         raw_data = []
-        for p in range(80, 120+1, 5):
-            self.device_manager.power_supply.set_voltage(motor.rated_voltage*p/100)
-            time.sleep(0.5)
+        for p in range(116, 80-1, -4):
+            self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * p/100)
+            time.sleep(3)
             data:dict = self.device_manager.power_meter.read_data()
             raw_data.append({'power_meter': data})
+            v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
+            i_str = f"I1:{data.get('I1')}, I2:{data.get('I2')}, I3:{data.get('I3')}"
+            p_str = f"P1:{data.get('P1')}, P2:{data.get('P2')}, P3:{data.get('P3')}"
+            print(f"[run_separate_excitation_test] read from power meter,{p}%, {v_str}, {i_str}, {p_str}")
             
 
         # r. 關閉測試電壓輸出Y27
-        self.device_manager.power_supply.set_output(0)
         self.device_manager.plc_electric.set_motor_output_off()
-        self.device_manager.plc_electric.set_ps_output_off()
+        time.sleep(1)
+        self.device_manager.power_supply.set_output(0)
         
         # s. 存入資料 
         motor.add_result_separate_excitation(raw_data)
         # t. 結束測試 
         print('[run_separate_excitation_test] Test Done')
         return True
-    
-
+    # 頻率飄移 95 100 105, 
+    def run_frequency_drift_test(self, motor:Motor):
+        self.system_init(3) # 3 phase system    
+        self.setup_ac_balance_and_check(motor)
+        print('[run_separate_excitation_test] ”待測馬達請脫離扭矩測試系統”')
+        input('Press Enter to continue:')
         
+        self.device_manager.plc_electric.set_motor_output_three()
+            
+        # set voltage 30% - 100%
+        for i in range(30, 100+1, 5):
+            self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * i/100)
+            time.sleep(0.2)
+        print('[run_open_circuit_test] 啟動完成')
+
+        now_da = 0
+        # to motor.horsepower
+        for da in range(0, 4000, 10):
+            self.device_manager.plc_mechanical.set_break(da)
+            time.sleep(0.5)
+            power_meter = self.device_manager.power_meter.read_data()
+            mechanical = self.device_manager.plc_mechanical.get_mechanical_data()
+            m_power = mechanical['speed'] * mechanical['torque'] /  9.549
+            # print .3f
+            print(f"[run_frequency_drift] speed:{mechanical['speed']}, torque:{mechanical['torque']:.2f}, DA:{da},m_power:{m_power} ,V1:{power_meter.get('V1')}, I1:{power_meter.get('I1')}")
+            if m_power >= motor.horsepower*746:
+                now_da = da
+                break
+        print(f"[run_frequency_drift] finetune..")
+        for da in range(now_da, 0, -1):
+            self.device_manager.plc_mechanical.set_break(da)
+            time.sleep(1)
+            power_meter = self.device_manager.power_meter.read_data()
+            mechanical = self.device_manager.plc_mechanical.get_mechanical_data()
+            m_power = mechanical['speed'] * mechanical['torque'] /  9.549
+            print(f"[run_frequency_drift] speed:{mechanical['speed']}, torque:{mechanical['torque']:.2f}, DA:{da},m_power:{m_power} ,V1:{power_meter.get('V1')}, I1:{power_meter.get('I1')}")            
+            if m_power <= motor.horsepower*746:
+                break
+        print(f"[run_frequency_drift] finetune done")
+
+        input('finetune done , Press Enter to continue:')
+
+        # save data
+        raw_data = []
+        for f in range(95, 105+1, 1):
+            self.device_manager.power_supply.set_frequency(motor.frequency*f/100)
+            time.sleep(2)
+            # save 10 data
+            # for i in range(10):
+            power_meter = self.device_manager.power_meter.read_data()
+            mechanical = self.device_manager.plc_mechanical.get_mechanical_data()
+            m_power = mechanical['speed'] * mechanical['torque'] /  9.549
+            raw_data.append({'power_meter': power_meter, 'mechanical': mechanical})
+            print(f"[run_frequency_drift] speed:{mechanical['speed']}, torque:{mechanical['torque']:.2f},m_power:{m_power} ,V1:{power_meter.get('V1')}, I1:{power_meter.get('I1')}, F1:{power_meter.get('FU1')}")
 
 
+        self.device_manager.plc_electric.set_motor_output_off()
+        time.sleep(1)
+        self.device_manager.power_supply.set_output(0)
+        
+        # s. 存入資料 
+        motor.add_result_frequency_drift(raw_data)
+        # t. 結束測試 
+        print('[frequency_drift_test] Test Done')
+        return True
         
 if __name__ == '__main__':
     
@@ -602,19 +568,34 @@ if __name__ == '__main__':
     device_manager.load_devices_from_ini('device.ini')
     
     # exit()
-    # data_sender = DataSender(device_manager)
-    # data_sender.start_plc_electric_data_sender(interval=1)
+    data_sender = DataSender(device_manager)
+    data_sender.start_plc_electric_data_sender(interval=1)
     
+    # while True:
+    #     pass
+
+    # 220
+    # motor = Motor()
+    # motor.rated_voltage = 220
+    # motor.power_phases = 3
+    # motor.speed = 3600
+    # motor.rated_current = 3
+    # motor.frequency = 60
+    # motor.horsepower = 1
+    # motor.poles = 2
+    # motor.no_load_current = 0.8
+    
+    # 110
     motor = Motor()
-    motor.rated_voltage = 220
-    motor.power_phases = 3
-    motor.speed = 3600
-    motor.rated_current = 3
+    motor.rated_voltage = 110
+    motor.power_phases = 1
+    motor.speed = 1800 
+    motor.rated_current = 1.5
     motor.frequency = 60
-    motor.horsepower = 1
-    motor.poles = 2
+    motor.horsepower = 0.25
+    motor.poles = 4
     motor.no_load_current = 0.8
-    
+
     test_runner = TestRunner(device_manager)
     print(test_runner.device_manager.power_meter.get_serial_number())
     print(test_runner.device_manager.power_supply.get_idn())
@@ -624,17 +605,22 @@ if __name__ == '__main__':
     # test_runner.test_dc_resistance(motor)
     # test_runner.run_open_circuit_test(motor)
     # test_runner.run_lock_rotor_test(motor)
-
-    test_runner.run_load_test(motor)
-
-    
-    
+    # test_runner.run_load_test(motor)
     # test_runner.run_separate_excitation_test(motor)
 
-    import json
-    timestamp = motor.make_time_stamp()
-    with open(f'test_file/motor_{timestamp}_load_test.json', 'w') as f:
-        json.dump(motor.to_dict(), f, indent=4)
+    # test_runner.run_frequency_drift_test(motor)
+
+    # test_runner.system_init(1)
+    # test_runner.setup_ac_single_phase_and_check(motor)
+
+
+    
+    
+
+    # import json
+    # timestamp = motor.make_time_stamp()
+    # with open(f'test_file/motor_{timestamp}_frequency_drift_test.json', 'w') as f:
+    #     json.dump(motor.to_dict(), f, indent=4)
     
     
     

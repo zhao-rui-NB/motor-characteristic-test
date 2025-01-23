@@ -19,6 +19,7 @@ class Motor:
         self.data_locked_rotor = []
         self.data_load = []
         self.data_separate_excitation = []
+        self.frequency_drift = []
         
         # test results
         self.result_dc_resistance = None
@@ -26,6 +27,7 @@ class Motor:
         self.result_locked_rotor = None
         self.result_load_test = None
         self.result_separate_excitation = None
+        self.result_frequency_drift = None
         
         
     def make_time_stamp(self):
@@ -71,6 +73,13 @@ class Motor:
             'raw_data' : raw_data, 
         }
         self.data_separate_excitation.append(res)
+
+    def add_result_frequency_drift(self, raw_data):
+        res = {
+            'timestamp': self.make_time_stamp(),
+            'raw_data' : raw_data, 
+        }
+        self.frequency_drift.append(res)
     
     def analyze_dc_resistance(self):
         print(f"Analyzing DC Resistance from {self.data_dc_resistance[-1]['timestamp']}") 
@@ -116,6 +125,9 @@ class Motor:
         pass
     
     def analyze_separate_excitation(self):
+        pass
+
+    def analyze_frequency_drift(self):
         pass
     
         
@@ -163,6 +175,7 @@ class Motor:
         self.result_locked_rotor = data['test_results']['result_locked_rotor']
         self.result_load_test = data['test_results']['result_load_test']
         self.result_separate_excitation = data['test_results']['result_separate_excitation']
+        self.result_frequency_drift = data['test_results']['result_frequency_drift']
         
         
         self.data_dc_resistance = data['test_data_log']['data_dc_resistance']
@@ -170,6 +183,7 @@ class Motor:
         self.data_locked_rotor = data['test_data_log']['data_locked_rotor']
         self.data_load = data['test_data_log']['data_load']
         self.data_separate_excitation = data['test_data_log']['data_separate_excitation']
+        self.frequency_drift = data['test_data_log']['frequency_drift']
         
         
     
