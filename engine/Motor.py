@@ -38,7 +38,28 @@ class Motor:
     def is_single_phase(self):
         return self.power_phases == 1
     
-            
+    def update_motor_parameter(self, para_name, value):
+        int_type_para = ['power_phases', 'poles']
+        float_type_para = ['rated_voltage', 'speed', 'rated_current', 'frequency', 'horsepower', 'no_load_current']
+        if para_name in int_type_para:
+            try:
+                setattr(self, para_name, int(value))
+                return True
+            except ValueError:# set 
+                setattr(self, para_name, None)
+                print(f"[Motor] Invalid update motor parameter: {para_name} with value: {value}")
+        elif para_name in float_type_para:
+            try:
+                setattr(self, para_name, float(value))
+                return True
+            except ValueError:
+                setattr(self, para_name, None)
+                print(f"[Motor] Invalid update motor parameter: {para_name} with value: {value}")
+        else:
+            print(f"[Motor] Invalid motor parameter: {para_name}")
+        return False
+
+
     def add_result_dc_resistance(self, raw_data):
         res = {
             'timestamp': self.make_time_stamp(),
@@ -149,6 +170,7 @@ class Motor:
                 'result_locked_rotor': self.result_locked_rotor,
                 'result_load_test': self.result_load_test,
                 'result_separate_excitation': self.result_separate_excitation,
+                'result_frequency_drift': self.result_frequency_drift,
             },
             
             'test_data_log': {
@@ -157,6 +179,7 @@ class Motor:
                 'data_locked_rotor': self.data_locked_rotor,
                 'data_load': self.data_load,
                 'data_separate_excitation': self.data_separate_excitation,
+                'frequency_drift': self.frequency_drift,
             },
         }
         

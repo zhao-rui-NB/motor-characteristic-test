@@ -5,7 +5,6 @@ from PyQt6.QtWidgets import *
 from ui_main import ui_main
 
 from widget.logic.MotorMonitor import MotorMonitor
-from widget.logic.PowerSupplyControlPanel import PowerSupplyControlPanel
 from widget.logic.MotorParameter import MotorParameter
 
 from engine.DeviceManager import DeviceManager

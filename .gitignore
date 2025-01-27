@@ -1,5 +1,6 @@
 *.json
 !test_file/**
+ignore
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
