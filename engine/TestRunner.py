@@ -177,7 +177,7 @@ class TestRunner:
         print(f"[setup_ac_single_phase_and_check] system check done")
 
     # ok
-    def test_dc_resistance(self, motor:Motor):
+    def run_dc_resistance_test(self, motor:Motor):
         self.system_init(3) # 3 phase system 
 
         self.device_manager.power_supply.set_instrument_edit(1) # 同時調整

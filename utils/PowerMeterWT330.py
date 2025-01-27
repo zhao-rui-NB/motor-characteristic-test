@@ -163,8 +163,8 @@ class PowerMeterWT330:
         key_sigma = ['V_SIGMA', 'I_SIGMA', 'P_SIGMA', 'S_SIGMA', 'Q_SIGMA', 'LAMBDA_SIGMA', 'PHI_SIGMA', 'FU_SIGMA', 'FI_SIGMA']
         
         result = self._generic_command("NUMeric:NORMal:VALue?")
-        result = [float(x) for x in result]
-        if result:
+        if result[0] and len(result) >=39:
+            result = [float(x) for x in result]
             data = {}
             for i, k in enumerate(key1):
                 data[k] = result[i]

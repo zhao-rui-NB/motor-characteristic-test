@@ -25,15 +25,23 @@ class PlcElectric:
         # cvt all data by key order than prepare for send
         # each float need 2 register
         for k in key1:
+            if data_dict[k] is None:
+                data_dict[k] = 0
             reg_data.extend(self.worker.float_to_registers(data_dict[k]))
         reg_data.extend([69,69]) # one empty register
         for k in key2:
+            if data_dict[k] is None:
+                data_dict[k] = 0
             reg_data.extend(self.worker.float_to_registers(data_dict[k]))
         reg_data.extend([69,69]) # one empty register
         for k in key3:
+            if data_dict[k] is None:
+                data_dict[k] = 0
             reg_data.extend(self.worker.float_to_registers(data_dict[k]))
         reg_data.extend([69,69]) # one empty register
         for k in key_sigma:
+            if data_dict[k] is None:
+                data_dict[k] = 0
             reg_data.extend(self.worker.float_to_registers(data_dict[k]))
             
         # send data to plc

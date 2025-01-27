@@ -31,8 +31,9 @@ class DeviceManager:
         
     def load_devices_from_ini(self, ini_file:str):
         if self.config is not None:
-            print(f'[DeviceManager] Error: Config already loaded')
-            return False
+            print(f'[DeviceManager] Config already loaded, reload ini file: {ini_file}')
+            self.release_resources()
+                    
         
         self.config = configparser.ConfigParser()
         self.config.read(ini_file)
@@ -76,6 +77,7 @@ class DeviceManager:
     
     # release resources
     def release_resources(self):
+        self.config = None
         
         if self.power_supply is not None:
             self.power_supply.worker.stop()

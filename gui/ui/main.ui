@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1218</width>
-    <height>995</height>
+    <width>1046</width>
+    <height>944</height>
    </rect>
   </property>
   <property name="sizeIncrement">
@@ -210,7 +210,7 @@
            <bool>false</bool>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="page_connect_test">
            <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -224,8 +224,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>320</width>
-                 <height>217</height>
+                 <width>878</width>
+                 <height>608</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -467,8 +467,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1050</width>
-                 <height>647</height>
+                 <width>878</width>
+                 <height>608</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -850,8 +850,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>276</width>
-                 <height>335</height>
+                 <width>878</width>
+                 <height>608</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -890,7 +890,7 @@
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_3">
                    <item>
-                    <widget class="QPushButton" name="btn_load_test_2">
+                    <widget class="QPushButton" name="btn_dc_resistance_test">
                      <property name="text">
                       <string>直流阻抗測試</string>
                      </property>
@@ -972,8 +972,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>490</width>
-                 <height>555</height>
+                 <width>861</width>
+                 <height>1305</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1009,6 +1009,9 @@
                        <width>0</width>
                        <height>0</height>
                       </size>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -1061,6 +1064,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
                     </widget>
                    </item>
                    <item>
@@ -1089,6 +1095,9 @@
                        <width>0</width>
                        <height>0</height>
                       </size>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -1119,6 +1128,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
                     </widget>
                    </item>
                    <item>
@@ -1147,6 +1159,9 @@
                        <width>0</width>
                        <height>0</height>
                       </size>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -1186,6 +1201,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
                     </widget>
                    </item>
                    <item>
@@ -1214,6 +1232,9 @@
                        <width>0</width>
                        <height>0</height>
                       </size>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
                      </property>
                     </widget>
                    </item>
@@ -1244,6 +1265,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
                     </widget>
                    </item>
                    <item>
@@ -1273,6 +1297,9 @@
                        <height>0</height>
                       </size>
                      </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
                     </widget>
                    </item>
                   </layout>
@@ -1289,7 +1316,7 @@
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>50</height>
+                       <height>300</height>
                       </size>
                      </property>
                     </widget>
@@ -1308,7 +1335,7 @@
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>50</height>
+                       <height>300</height>
                       </size>
                      </property>
                     </widget>
@@ -1327,7 +1354,7 @@
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>50</height>
+                       <height>300</height>
                       </size>
                      </property>
                     </widget>
@@ -1365,8 +1392,8 @@
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>0</y>
-                 <width>810</width>
+                 <y>-262</y>
+                 <width>861</width>
                  <height>870</height>
                 </rect>
                </property>
@@ -1839,7 +1866,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QLineEdit" name="lineEdit_13">
+                           <widget class="QLineEdit" name="lineEdit_manual_plc_mechanical_break">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>2</horstretch>
@@ -1849,7 +1876,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_5">
+                           <widget class="QPushButton" name="btn_manual_plc_mechanical_break">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -1894,7 +1921,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_7">
+                           <widget class="QPushButton" name="btn_manual_plc_electric_ps_single">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -1907,7 +1934,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_8">
+                           <widget class="QPushButton" name="btn_manual_plc_electric_ps_three">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -1920,7 +1947,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_6">
+                           <widget class="QPushButton" name="btn_manual_plc_electric_ps_off">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -1950,7 +1977,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_10">
+                           <widget class="QPushButton" name="btn_manual_plc_electric_output_single">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -1963,7 +1990,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_9">
+                           <widget class="QPushButton" name="btn_manual_plc_electric_output_three">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -1976,7 +2003,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_11">
+                           <widget class="QPushButton" name="btn_manual_plc_electric_output_off">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2008,7 +2035,7 @@
                         <item>
                          <layout class="QHBoxLayout" name="horizontalLayout_14">
                           <item>
-                           <widget class="QPushButton" name="pushButton_13">
+                           <widget class="QPushButton" name="btn_manual_power_meter_clear">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2021,7 +2048,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_14">
+                           <widget class="QPushButton" name="btn_manual_power_meter_reset">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2053,7 +2080,7 @@
                         <item>
                          <layout class="QHBoxLayout" name="horizontalLayout_16">
                           <item>
-                           <widget class="QPushButton" name="pushButton_15">
+                           <widget class="QPushButton" name="btn_manual_power_supply_clear">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2066,7 +2093,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_16">
+                           <widget class="QPushButton" name="btn_manual_power_supply_reset">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2079,7 +2106,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_22">
+                           <widget class="QPushButton" name="btn_manual_power_supply_output_on">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2092,7 +2119,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_21">
+                           <widget class="QPushButton" name="btn_manual_power_supply_output_off">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2122,7 +2149,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QLineEdit" name="lineEdit_16">
+                           <widget class="QLineEdit" name="lineEdit_manual_power_supply_ac">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>2</horstretch>
@@ -2132,7 +2159,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_18">
+                           <widget class="QPushButton" name="btn_manual_power_supply_ac">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2162,7 +2189,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QLineEdit" name="lineEdit_21">
+                           <widget class="QLineEdit" name="lineEdit_manual_power_supply_dc_offect">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>2</horstretch>
@@ -2172,7 +2199,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_42">
+                           <widget class="QPushButton" name="btn_manual_power_supply_dc_offect">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2202,7 +2229,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QLineEdit" name="lineEdit_17">
+                           <widget class="QLineEdit" name="lineEdit_manual_power_supply_current">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>2</horstretch>
@@ -2212,7 +2239,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_19">
+                           <widget class="QPushButton" name="btn_manual_power_supply_current">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2242,7 +2269,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QLineEdit" name="lineEdit_18">
+                           <widget class="QLineEdit" name="lineEdit_manual_power_supply_frequency">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>2</horstretch>
@@ -2252,7 +2279,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_20">
+                           <widget class="QPushButton" name="btn_manual_power_supply_frequency">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2282,7 +2309,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_23">
+                           <widget class="QPushButton" name="btn_manual_power_supply_phase_wire_3P4W">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2295,7 +2322,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_24">
+                           <widget class="QPushButton" name="btn_manual_power_supply_phase_wire_1P2W">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2308,7 +2335,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_25">
+                           <widget class="QPushButton" name="btn_manual_power_supply_phase_wire_1P3W">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2338,7 +2365,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_26">
+                           <widget class="QPushButton" name="btn_manual_power_supply_mode_acdc">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2351,7 +2378,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_27">
+                           <widget class="QPushButton" name="btn_manual_power_supply_mode_ac">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2364,7 +2391,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_28">
+                           <widget class="QPushButton" name="btn_manual_power_supply_mode_dc">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2394,7 +2421,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_29">
+                           <widget class="QPushButton" name="btn_manual_power_supply_edit_each">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2407,7 +2434,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_30">
+                           <widget class="QPushButton" name="btn_manual_power_supply_edit_all">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2437,7 +2464,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_33">
+                           <widget class="QPushButton" name="btn_manual_power_supply_edit_L1">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2450,7 +2477,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_31">
+                           <widget class="QPushButton" name="btn_manual_power_supply_edit_L2">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2463,7 +2490,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_32">
+                           <widget class="QPushButton" name="btn_manual_power_supply_edit_L3">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2493,7 +2520,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_37">
+                           <widget class="QPushButton" name="btn_manual_power_supply_unbalance">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2506,7 +2533,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_38">
+                           <widget class="QPushButton" name="btn_manual_power_supply_balance">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2536,7 +2563,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QLineEdit" name="lineEdit_19">
+                           <widget class="QLineEdit" name="lineEdit_manual_power_supply_phase_angle">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>2</horstretch>
@@ -2546,7 +2573,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_39">
+                           <widget class="QPushButton" name="btn_manual_power_supply_phase_angle_L12">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2559,7 +2586,7 @@
                            </widget>
                           </item>
                           <item>
-                           <widget class="QPushButton" name="pushButton_40">
+                           <widget class="QPushButton" name="btn_manual_power_supply_phase_angle_L13">
                             <property name="sizePolicy">
                              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                               <horstretch>1</horstretch>
@@ -2621,7 +2648,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1218</width>
+     <width>1046</width>
      <height>31</height>
     </rect>
    </property>
@@ -2669,7 +2696,7 @@
   <tabstop>btn_Test_PowerSupply</tabstop>
   <tabstop>scrollArea_pg_connect</tabstop>
   <tabstop>scrollArea_pg_auto</tabstop>
-  <tabstop>btn_load_test_2</tabstop>
+  <tabstop>btn_dc_resistance_test</tabstop>
   <tabstop>btn_no_load_test</tabstop>
   <tabstop>btn_lock_rotor_test</tabstop>
   <tabstop>btn_separate_excitation_test</tabstop>
@@ -2688,44 +2715,44 @@
   <tabstop>lineEdit_lock_pf</tabstop>
   <tabstop>scrollArea_pg_manual</tabstop>
   <tabstop>pushButton_17</tabstop>
-  <tabstop>lineEdit_13</tabstop>
-  <tabstop>pushButton_5</tabstop>
-  <tabstop>pushButton_7</tabstop>
-  <tabstop>pushButton_8</tabstop>
-  <tabstop>pushButton_6</tabstop>
-  <tabstop>pushButton_10</tabstop>
-  <tabstop>pushButton_9</tabstop>
-  <tabstop>pushButton_11</tabstop>
-  <tabstop>pushButton_13</tabstop>
-  <tabstop>pushButton_14</tabstop>
-  <tabstop>pushButton_15</tabstop>
-  <tabstop>pushButton_16</tabstop>
-  <tabstop>pushButton_22</tabstop>
-  <tabstop>pushButton_21</tabstop>
-  <tabstop>lineEdit_16</tabstop>
-  <tabstop>pushButton_18</tabstop>
-  <tabstop>lineEdit_21</tabstop>
-  <tabstop>pushButton_42</tabstop>
-  <tabstop>lineEdit_17</tabstop>
-  <tabstop>pushButton_19</tabstop>
-  <tabstop>lineEdit_18</tabstop>
-  <tabstop>pushButton_20</tabstop>
-  <tabstop>pushButton_23</tabstop>
-  <tabstop>pushButton_24</tabstop>
-  <tabstop>pushButton_25</tabstop>
-  <tabstop>pushButton_26</tabstop>
-  <tabstop>pushButton_27</tabstop>
-  <tabstop>pushButton_28</tabstop>
-  <tabstop>pushButton_29</tabstop>
-  <tabstop>pushButton_30</tabstop>
-  <tabstop>pushButton_33</tabstop>
-  <tabstop>pushButton_31</tabstop>
-  <tabstop>pushButton_32</tabstop>
-  <tabstop>pushButton_37</tabstop>
-  <tabstop>pushButton_38</tabstop>
-  <tabstop>lineEdit_19</tabstop>
-  <tabstop>pushButton_39</tabstop>
-  <tabstop>pushButton_40</tabstop>
+  <tabstop>lineEdit_manual_plc_mechanical_break</tabstop>
+  <tabstop>btn_manual_plc_mechanical_break</tabstop>
+  <tabstop>btn_manual_plc_electric_ps_single</tabstop>
+  <tabstop>btn_manual_plc_electric_ps_three</tabstop>
+  <tabstop>btn_manual_plc_electric_ps_off</tabstop>
+  <tabstop>btn_manual_plc_electric_output_single</tabstop>
+  <tabstop>btn_manual_plc_electric_output_three</tabstop>
+  <tabstop>btn_manual_plc_electric_output_off</tabstop>
+  <tabstop>btn_manual_power_meter_clear</tabstop>
+  <tabstop>btn_manual_power_meter_reset</tabstop>
+  <tabstop>btn_manual_power_supply_clear</tabstop>
+  <tabstop>btn_manual_power_supply_reset</tabstop>
+  <tabstop>btn_manual_power_supply_output_on</tabstop>
+  <tabstop>btn_manual_power_supply_output_off</tabstop>
+  <tabstop>lineEdit_manual_power_supply_ac</tabstop>
+  <tabstop>btn_manual_power_supply_ac</tabstop>
+  <tabstop>lineEdit_manual_power_supply_dc_offect</tabstop>
+  <tabstop>btn_manual_power_supply_dc_offect</tabstop>
+  <tabstop>lineEdit_manual_power_supply_current</tabstop>
+  <tabstop>btn_manual_power_supply_current</tabstop>
+  <tabstop>lineEdit_manual_power_supply_frequency</tabstop>
+  <tabstop>btn_manual_power_supply_frequency</tabstop>
+  <tabstop>btn_manual_power_supply_phase_wire_3P4W</tabstop>
+  <tabstop>btn_manual_power_supply_phase_wire_1P2W</tabstop>
+  <tabstop>btn_manual_power_supply_phase_wire_1P3W</tabstop>
+  <tabstop>btn_manual_power_supply_mode_acdc</tabstop>
+  <tabstop>btn_manual_power_supply_mode_ac</tabstop>
+  <tabstop>btn_manual_power_supply_mode_dc</tabstop>
+  <tabstop>btn_manual_power_supply_edit_each</tabstop>
+  <tabstop>btn_manual_power_supply_edit_all</tabstop>
+  <tabstop>btn_manual_power_supply_edit_L1</tabstop>
+  <tabstop>btn_manual_power_supply_edit_L2</tabstop>
+  <tabstop>btn_manual_power_supply_edit_L3</tabstop>
+  <tabstop>btn_manual_power_supply_unbalance</tabstop>
+  <tabstop>btn_manual_power_supply_balance</tabstop>
+  <tabstop>lineEdit_manual_power_supply_phase_angle</tabstop>
+  <tabstop>btn_manual_power_supply_phase_angle_L12</tabstop>
+  <tabstop>btn_manual_power_supply_phase_angle_L13</tabstop>
   <tabstop>textEdit_system_log</tabstop>
  </tabstops>
  <resources/>

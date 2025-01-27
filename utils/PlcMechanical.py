@@ -7,14 +7,18 @@ class PlcMechanical:
         self.worker = ModbusTcpWorker(ip, port)
         
     def get_mechanical_data(self):
-        result = self.worker.read_holding_registers(0x0000, 4)
-        if None in result:
+        try:
+            result = self.worker.read_holding_registers(0x0000, 4)
+            if None in result:
+                return {'speed': None, 'torque': None}
+            
+            speed = self.worker.registers_to_float(result[0:2])
+            torque = self.worker.registers_to_float(result[2:4])
+            
+            return {'speed': speed, 'torque': torque}
+        except Exception as e:
+            print(f"[PlcMechanical get_mechanical_data] Error: {e}")
             return {'speed': None, 'torque': None}
-        
-        speed = self.worker.registers_to_float(result[0:2])
-        torque = self.worker.registers_to_float(result[2:4])
-        
-        return {'speed': speed, 'torque': torque}
     
     def set_break(self, value):
         '''Set break value 0-4000'''
