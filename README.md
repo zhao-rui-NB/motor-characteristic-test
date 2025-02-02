@@ -1,6 +1,5 @@
 # motor-characteristic-test
 
-
 ## install
 ```
 
@@ -8,8 +7,14 @@
 
 ## run
 
+ui
 ```
+python -m gui.main
 python main.py
+```
+
+
+```
 ```
 
 ### 測試工具

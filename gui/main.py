@@ -22,6 +22,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setWindowTitle('馬達測試系統')
         
+        self.showMaximized()
+        
+        # set self.mpl_load gbcolor to green 
+        # self.mpl_load.setStyleSheet("background-color: green; border: 5px solid black;")
+        
+        # full screen
+        
         self.task_running_mode(False)
         
         # connect all signals
@@ -37,19 +44,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.auto_test_qthread: QThread = None
 
-
+        self.PlcElectrical_connect_ok = False
+        self.PlcMechanical_connect_ok = False
+        self.PowerMeter_connect_ok = False
+        self.PowerSupply_connect_ok = False
         
-        self.device_manager.load_devices_from_ini('device.ini')
-        self.data_collector.start() # start the data collector
-        self.data_sender.start_plc_electric_data_sender()
+
         # timer for manual monitoring
         self.monitor_timer = QTimer()
         self.monitor_timer.timeout.connect(self.on_update_manual_monitoring)
-        self.monitor_timer.start(500)
         
         self.saved_flag = True
         self.update_file_save_status(True)
         
+        ############################## init 
+        # self.on_connect()
+        
+        self.resize( self.width(), self.height() )
+        self.mpl_load.clear_plot()
+        #
+        self.mpl_load.plot([1,2,3,4,5], [1,2,3,4,5])
+        self.mpl_load.canvas.draw()
 
 
     def signal_connect(self):
@@ -87,6 +102,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_para_frequency.editingFinished.connect(lambda: self.on_motor_parameter_edited('frequency', self.lineEdit_para_frequency.text()))
         self.lineEdit_para_power_phases.editingFinished.connect(lambda: self.on_motor_parameter_edited('power_phases', self.lineEdit_para_power_phases.text()))
         self.lineEdit_para_speed.editingFinished.connect(lambda: self.on_motor_parameter_edited('speed', self.lineEdit_para_speed.text()))
+        # other motor info
+        self.lineEdit_para_other1.editingFinished.connect(lambda: self.on_motor_parameter_edited('manufacturer', self.lineEdit_para_other1.text()))
+        self.lineEdit_para_other2.editingFinished.connect(lambda: self.on_motor_parameter_edited('model', self.lineEdit_para_other2.text()))
+        self.lineEdit_para_other3.editingFinished.connect(lambda: self.on_motor_parameter_edited('serial_number', self.lineEdit_para_other3.text()))
+        self.lineEdit_para_other4.editingFinished.connect(lambda: self.on_motor_parameter_edited('note', self.lineEdit_para_other4.text()))
+        
         
         # auto test manual btn
         self.btn_dc_resistance_test.clicked.connect(self.on_dc_resistance_clicked)
@@ -103,9 +124,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_Test_PowerMeter.clicked.connect(self.on_test_PowerMeter)
         self.btn_Test_PowerSupply.clicked.connect(self.on_test_PowerSupply)
         
-        self.btn_con_reconnect.clicked.connect(self.on_reconnect)
-        self.btn_con_test_clear.clicked.connect(self.on_connect_test_clear)
-        self.btn_con_test_all.clicked.connect(self.on_connect_test_all)     
+        self.btn_con_connect.clicked.connect(self.on_connect)
+        self.btn_con_disconnect.clicked.connect(self.on_disconnect)
         
         # manual monitoring page
         # setValidator
@@ -174,6 +194,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for i, button in enumerate(button_list):
             button.setChecked(i == index)
     
+    # resize event , resize the figure
+    
     ##############################################################################
     # connect page
     ##############################################################################
@@ -183,51 +205,86 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lb_PowerMeter_test.setText('尚未測試')
         self.lb_PowerSupply_test.setText('尚未測試')
         
-    def on_reconnect(self):
+    def on_connect(self):
         self.device_manager.load_devices_from_ini('device.ini')
-        self.data_sender.start_plc_electric_data_sender()
         self.on_connect_test_clear()
-        
-    def on_connect_test_all(self):
+        # test all the devices
         self.on_test_PlcElectrical()
         self.on_test_PlcMechanical()
         self.on_test_PowerMeter()
         self.on_test_PowerSupply()
+
+        all_ok = self.PlcElectrical_connect_ok and self.PlcMechanical_connect_ok and self.PowerMeter_connect_ok and self.PowerSupply_connect_ok
+        if all_ok:
+            QMessageBox.information(self, 'Success', '連線成功')
+        else:
+            QMessageBox.critical(self, 'Error', '連線失敗')
+        
+        if all_ok:
+            # for plc electric data display
+            self.data_sender.start_plc_electric_data_sender()
+            # for manual monitoring
+            self.data_collector.start()
+            self.monitor_timer.start(500)
+
+    def on_disconnect(self):
+        self.data_sender.stop_plc_electric_data_sender()
+        self.monitor_timer.stop()
+        self.data_collector.stop()
+        
+        self.device_manager.release_resources()
+        self.on_connect_test_clear()
+        
+        QMessageBox.information(self, 'Success', '斷線成功')
+        
         
     def on_test_PlcElectrical(self):
         self.lb_PlcElectrical_test.setText('測試中...')
+        self.PlcElectrical_connect_ok = False
         try:
             r1 = self.device_manager.plc_electric.get_is_ps_output_single()
             r2 = self.device_manager.plc_electric.get_is_ps_output_three()
             self.lb_PlcElectrical_test.setText('測試成功')
             print(f'PlcElectrical test: {r1} {r2}')
+            self.PlcElectrical_connect_ok = True
         except:
             self.lb_PlcElectrical_test.setText('測試失敗')
-        
     def on_test_PlcMechanical(self):
         self.lb_PlcMechanical_test.setText('測試中...')
+        self.PlcMechanical_connect_ok = False
         try:
             r1 = self.device_manager.plc_mechanical.get_mechanical_data()
+            if None in r1.values():
+                raise Exception('PlcMechanical test failed')
             self.lb_PlcMechanical_test.setText('測試成功')
             print(f'PlcMechanical test: {r1}')
+            self.PlcMechanical_connect_ok = True
         except:
             self.lb_PlcMechanical_test.setText('測試失敗')
-        
     def on_test_PowerMeter(self):
         self.lb_PowerMeter_test.setText('測試中...')
-        r1 = self.device_manager.power_meter.get_serial_number()
+        self.PowerMeter_connect_ok = False
+        try:
+            r1 = self.device_manager.power_meter.get_serial_number()
+        except:
+            r1 = None
         if not r1 or not r1[0]:
             self.lb_PowerMeter_test.setText('測試失敗')
         else:
             self.lb_PowerMeter_test.setText('測試成功')
-        
+            self.PowerMeter_connect_ok = True
     def on_test_PowerSupply(self):
         self.lb_PowerSupply_test.setText('測試中...')
-        r1 = self.device_manager.power_supply.get_idn()
+        self.PowerSupply_connect_ok = False
+        try:
+            r1 = self.device_manager.power_supply.get_idn()
+        except:
+            r1 = None
         if not r1 or not r1[0]:
             self.lb_PowerSupply_test.setText('測試失敗')
         else:
             self.lb_PowerSupply_test.setText('測試成功')
+            self.PowerSupply_connect_ok = True
         
     
     
@@ -254,6 +311,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_para_power_phases.setText(str(self.motor.power_phases) if self.motor.power_phases else '')
         self.lineEdit_para_speed.setText(str(self.motor.speed) if self.motor.speed else '')
         
+        # other 
+        self.lineEdit_para_other1.setText(self.motor.manufacturer if self.motor.manufacturer else '')
+        self.lineEdit_para_other2.setText(self.motor.model if self.motor.model else '')
+        self.lineEdit_para_other3.setText(self.motor.serial_number if self.motor.serial_number else '')
+        self.lineEdit_para_other4.setText(self.motor.note if self.motor.note else '')
+        
     
     ##############################################################################
     # File operation
@@ -269,8 +332,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # a save dialog to save the file
         file_name, _ = QFileDialog.getSaveFileName(self, 'Save Project', f'{timestamp}.motor.json', 'MOTOR JSON File (*.motor.json)')
         if file_name:
-            with open(file_name, 'w') as f:
-                json.dump(motor_json, f, indent=4)
+            with open(file_name, 'w', encoding='UTF8') as f:
+                json.dump(motor_json, f, indent=4, ensure_ascii=False)
             self.update_file_save_status(True)
     
     def on_open_project(self):
@@ -285,10 +348,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # a open dialog to open the file
         file_name, _ = QFileDialog.getOpenFileName(self, 'Open Project', '', 'MOTOR JSON File (*.motor.json)')
         if file_name:
-            with open(file_name, 'r') as f:
+            with open(file_name, 'r', encoding='UTF8') as f:
                 data = json.load(f)
-                self.motor.from_dict(data)
-                self.update_motor_parameter()
+            self.motor.from_dict(data)
+            self.update_motor_parameter()
+            self.update_test_result_page()
+            
             self.update_file_save_status(True)
                 
     def on_new_project(self):
@@ -303,6 +368,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # create a new motor object
         self.motor = Motor()
         self.update_motor_parameter()
+        self.update_test_result_page()
+        
         self.update_file_save_status(True)
         
     
@@ -419,28 +486,71 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # Test Result page
     ##############################################################################
     def update_test_result_page(self):
+        # analysis all the test data
+        self.motor.analyze_dc_resistance()
+        self.motor.analyze_open_circuit()
+        self.motor.analyze_locked_rotor()
+        self.motor.analyze_load_test()
+        self.motor.analyze_separate_excitation()
+        self.motor.analyze_frequency_drift()
+        
+        
+        
         # update the test result page to ui
         
         # dc resistance
-        self.lineEdit_dc_resistance_result.setText(str(self.motor.result_dc_resistance))
+        self.lineEdit_dc_resistance_result.setText(str(self.motor.result_dc_resistance) if self.motor.result_dc_resistance else '')
         
         open_v = str(self.motor.result_open_circuit.get('voltage')) if self.motor.result_open_circuit else ''
         open_i = str(self.motor.result_open_circuit.get('current')) if self.motor.result_open_circuit else ''
         open_p = str(self.motor.result_open_circuit.get('power')) if self.motor.result_open_circuit else ''
+        open_pf = str(self.motor.result_open_circuit.get('power_factor')) if self.motor.result_open_circuit else ''
         self.lineEdit_open_v.setText(open_v)
         self.lineEdit_open_i.setText(open_i)
         self.lineEdit_open_p.setText(open_p)
+        self.lineEdit_open_pf.setText(open_pf)
         
         lock_v = str(self.motor.result_locked_rotor.get('voltage')) if self.motor.result_locked_rotor else ''
         lock_i = str(self.motor.result_locked_rotor.get('current')) if self.motor.result_locked_rotor else ''
         lock_p = str(self.motor.result_locked_rotor.get('power')) if self.motor.result_locked_rotor else ''
+        lock_pf = str(self.motor.result_locked_rotor.get('power_factor')) if self.motor.result_locked_rotor else '' 
         self.lineEdit_lock_v.setText(lock_v)
         self.lineEdit_lock_i.setText(lock_i)
         self.lineEdit_lock_p.setText(lock_p)
+        self.lineEdit_lock_pf.setText(lock_pf)
         
         
         ###### todo load, separate_excitation, frequency_drift
         ###### figure update
+        print('self.motor.result_load_test', self.motor.result_load_test)
+        # if self.motor.result_load_test:
+        
+        
+        self.mpl_load.clear_plot()
+        if self.motor.result_load_test:
+            self.motor.polt_load_test(self.mpl_load.get_axes())
+            
+        self.mpl_separate_excitation.clear_plot()
+        if self.motor.result_separate_excitation:
+            pass
+            # self.motor.plot_separate_excitation(self.mpl_separate_excitation.get_axes())
+        
+        self.mpl_frequency_drift.clear_plot()
+        if self.motor.result_frequency_drift:
+            pass
+            # self.motor.plot_frequency_drift(self.mpl_frequency_drift.get_axes())
+
+            
+            
+        # reprint all mpl widget
+        self.mpl_load.repaint()
+        self.mpl_separate_excitation.repaint()
+        self.mpl_frequency_drift.repaint()
+        
+        self.repaint()
+        
+        self.mpl_load.canvas.draw()
+            
         
         
     ##############################################################################

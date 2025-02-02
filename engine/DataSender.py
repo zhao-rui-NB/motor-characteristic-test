@@ -29,6 +29,8 @@ class DataSender:
         
     def stop_plc_electric_data_sender(self):
         self.plc_electric_data_sender_running = False
+        if self.plc_electric_data_sender_thread is None:
+            return
         self.plc_electric_data_sender_thread.join()
         self.plc_electric_data_sender_thread = None
         

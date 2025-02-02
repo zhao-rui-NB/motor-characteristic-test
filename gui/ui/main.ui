@@ -53,7 +53,7 @@
        <item>
         <widget class="QPushButton" name="btn_connect">
          <property name="text">
-          <string>連線確認</string>
+          <string>系統連線</string>
          </property>
          <property name="checkable">
           <bool>true</bool>
@@ -167,6 +167,16 @@
          </property>
         </widget>
        </item>
+       <item alignment="Qt::AlignHCenter">
+        <widget class="QCheckBox" name="checkBox_2">
+         <property name="text">
+          <string>log</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
@@ -224,8 +234,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>878</width>
-                 <height>608</height>
+                 <width>320</width>
+                 <height>217</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -408,6 +418,13 @@
                 <item>
                  <layout class="QHBoxLayout" name="horizontalLayout">
                   <item>
+                   <widget class="QLabel" name="label_51">
+                    <property name="text">
+                     <string>硬體設備</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <spacer name="horizontalSpacer">
                     <property name="orientation">
                      <enum>Qt::Horizontal</enum>
@@ -421,21 +438,14 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="btn_con_reconnect">
+                   <widget class="QPushButton" name="btn_con_disconnect">
                     <property name="text">
-                     <string>重新連接</string>
+                     <string>斷開</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="btn_con_test_clear">
-                    <property name="text">
-                     <string>清除結果</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="btn_con_test_all">
+                   <widget class="QPushButton" name="btn_con_connect">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                       <horstretch>0</horstretch>
@@ -443,7 +453,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>全部測試</string>
+                     <string>連接</string>
                     </property>
                    </widget>
                   </item>
@@ -467,8 +477,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>878</width>
-                 <height>608</height>
+                 <width>439</width>
+                 <height>386</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -850,8 +860,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>878</width>
-                 <height>608</height>
+                 <width>276</width>
+                 <height>335</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -971,7 +981,7 @@
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>0</y>
+                 <y>-697</y>
                  <width>861</width>
                  <height>1305</height>
                 </rect>
@@ -1307,17 +1317,64 @@
                 </item>
                 <item>
                  <widget class="QGroupBox" name="groupBox_7">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="baseSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="title">
                    <string>負載測試</string>
                   </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_8">
+                  <layout class="QHBoxLayout" name="horizontalLayout_9">
                    <item>
-                    <widget class="MplWidget" name="mpl_load" native="true">
+                    <widget class="QWidget" name="widget" native="true">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="MplWidget" name="mpl_load">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>3</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
                        <height>300</height>
                       </size>
+                     </property>
+                     <property name="styleSheet">
+                      <string notr="true"/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QWidget" name="widget_2" native="true">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
                      </property>
                     </widget>
                    </item>
@@ -1326,12 +1383,34 @@
                 </item>
                 <item>
                  <widget class="QGroupBox" name="groupBox_8">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="title">
                    <string>鐵損分離測試</string>
                   </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_9">
+                  <layout class="QHBoxLayout" name="horizontalLayout_15">
                    <item>
-                    <widget class="MplWidget" name="mpl_separate_excitation" native="true">
+                    <widget class="QWidget" name="widget_3" native="true">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="MplWidget" name="mpl_separate_excitation">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>3</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
@@ -1340,22 +1419,64 @@
                      </property>
                     </widget>
                    </item>
+                   <item>
+                    <widget class="QWidget" name="widget_4" native="true">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
                   </layout>
                  </widget>
                 </item>
                 <item>
                  <widget class="QGroupBox" name="groupBox_9">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
                   <property name="title">
                    <string>頻率飄移測試</string>
                   </property>
-                  <layout class="QVBoxLayout" name="verticalLayout_10">
+                  <layout class="QHBoxLayout" name="horizontalLayout_13">
                    <item>
-                    <widget class="MplWidget" name="mpl_frequency_drift" native="true">
+                    <widget class="QWidget" name="widget_5" native="true">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="MplWidget" name="mpl_frequency_drift">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>3</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
                        <height>300</height>
                       </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QWidget" name="widget_6" native="true">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
                      </property>
                     </widget>
                    </item>
@@ -1392,8 +1513,8 @@
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-262</y>
-                 <width>861</width>
+                 <y>0</y>
+                 <width>810</width>
                  <height>870</height>
                 </rect>
                </property>
@@ -2658,7 +2779,7 @@
  <customwidgets>
   <customwidget>
    <class>MplWidget</class>
-   <extends>QWidget</extends>
+   <extends>QFrame</extends>
    <header>gui.MplWidget</header>
    <container>1</container>
   </customwidget>
@@ -2679,9 +2800,8 @@
   <tabstop>btn_Test_PlcMechanical</tabstop>
   <tabstop>btn_Test_PowerMeter</tabstop>
   <tabstop>btn_Test_PlcElectrical</tabstop>
-  <tabstop>btn_con_reconnect</tabstop>
-  <tabstop>btn_con_test_clear</tabstop>
-  <tabstop>btn_con_test_all</tabstop>
+  <tabstop>btn_con_disconnect</tabstop>
+  <tabstop>btn_con_connect</tabstop>
   <tabstop>scrollArea_pg_mot_para</tabstop>
   <tabstop>btn_motor_parameter</tabstop>
   <tabstop>btn_new</tabstop>
@@ -2764,12 +2884,44 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>567</x>
-     <y>89</y>
+     <x>938</x>
+     <y>102</y>
     </hint>
     <hint type="destinationlabel">
-     <x>632</x>
-     <y>89</y>
+     <x>771</x>
+     <y>188</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBox_2</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>textEdit_system_log</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>76</x>
+     <y>877</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>190</x>
+     <y>733</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btn_exit</sender>
+   <signal>clicked()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>52</x>
+     <y>837</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>102</x>
+     <y>-5</y>
     </hint>
    </hints>
   </connection>
