@@ -57,12 +57,12 @@ class Qthread_run_lock_rotor_test(QThread):
         self.test_runner = test_runner
         self.motor = motor
     def run(self):
-        try:
-            succ = self.test_runner.run_lock_rotor_test(self.motor)
-            self.signal_finish.emit(succ)
-        except Exception as e:
-            print(f"[Qthread_run_lock_rotor_test] error: {e}")
-            self.signal_finish.emit(False)
+        # try:
+        succ = self.test_runner.run_lock_rotor_test(self.motor)
+        self.signal_finish.emit(succ)
+        # except Exception as e:
+        #     print(f"[Qthread_run_lock_rotor_test] error: {e}")
+        #     self.signal_finish.emit(False)
         
 class Qthread_run_load_test(QThread):
     signal_finish = pyqtSignal(bool)

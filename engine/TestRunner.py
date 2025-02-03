@@ -97,6 +97,16 @@ class TestRunner:
             self.device_manager.power_meter.set_voltage_range(300)
         else:
             self.device_manager.power_meter.set_voltage_range(600)
+
+        # <Current> = 0.5, 1, 2, 5, 10, 20(A)
+        cur_range = [0.5, 1, 2, 5, 10, 20]
+        # find > 0.6 rated current in the list
+        current_range = 20 
+        for i in range(len(cur_range)):
+            if cur_range[i] > motor.rated_current*1.2:
+                current_range = cur_range[i]
+                break
+        self.device_manager.power_meter.set_current_range(current_range)
         
         # e 三相模式 設定ASR6450 為平衡三相系統
         self.device_manager.power_supply.set_phase_mode(1) # 0:UNBalance, 1:Balance  
@@ -170,7 +180,7 @@ class TestRunner:
             print('[setup_ac_balance_and_check] Frequency Read Error')
             return False
         
-        input('Press Enter to continue:')
+        # input('Press Enter to continue:')
 
         self.device_manager.power_supply.set_voltage(0)
 
@@ -179,6 +189,17 @@ class TestRunner:
     # ok
     def run_dc_resistance_test(self, motor:Motor):
         self.system_init(3) # 3 phase system 
+
+
+        # <Current> = 0.5, 1, 2, 5, 10, 20(A)
+        cur_range = [0.5, 1, 2, 5, 10, 20]
+        # find > 0.6 rated current in the list
+        current_range = 20 
+        for i in range(len(cur_range)):
+            if cur_range[i] > motor.rated_current*0.6:
+                current_range = cur_range[i]
+                break
+        self.device_manager.power_meter.set_current_range(current_range)
 
         self.device_manager.power_supply.set_instrument_edit(1) # 同時調整
         self.device_manager.power_supply.set_source_mode(2) # 0 DC-INT # e 設定ASR6450 DC+INT 三相系統
@@ -195,7 +216,7 @@ class TestRunner:
         # k 若為三相馬達, 則分三次測試
         # l 讀取 ASR6450 電壓(核對電壓輸出)
         # m 讀取 WT333 電壓 (核對電壓輸出)
-        test_dc_voltage = 1
+        test_dc_voltage = 2
         for i in range(1 if motor.is_single_phase() else 3):
             self.device_manager.power_supply.set_instrument_edit(1) # 1 All
             self.device_manager.power_supply.set_voltage_offset(0) # set all dc offset to 0
@@ -238,7 +259,7 @@ class TestRunner:
         print(f"[run_dc_resistance_test] system check done")
         
         print('[run_dc_resistance_test] ”待測馬達請脫離扭矩測試系統”')
-        input('Press Enter to continue:')
+        # input('Press Enter to continue:')
         
 
         self.device_manager.plc_electric.set_motor_output_three()
@@ -276,7 +297,7 @@ class TestRunner:
                     break
 
                 v_test_dc += 0.1
-            input(f'read finish {i}, press Enter to continue')
+            # input(f'read finish {i}, press Enter to continue')
         # return
         
         # s 計算直流電阻 = (2/3)*( Vdc/Idc)
@@ -300,7 +321,7 @@ class TestRunner:
         self.setup_ac_balance_and_check(motor)
         
         print('[run_open_circuit_test] ”待測馬達請脫離扭矩測試系統”')
-        input('Press Enter to continue:')   
+        # input('Press Enter to continue:')   
 
 
         self.device_manager.power_supply.set_voltage(0)
@@ -346,7 +367,7 @@ class TestRunner:
         self.device_manager.plc_mechanical.set_break(2000)
         
         print('[run_lock_rotor_test] ”待測馬達請安裝至扭矩測試系統”')
-        input('Press Enter to continue:')
+        # input('Press Enter to continue:')
         
         self.device_manager.plc_electric.set_motor_output_three()
             
@@ -363,7 +384,7 @@ class TestRunner:
             print(f"[run_dc_resistance_test] read from power meter, {v_str}, {i_str}")
             
             now_current = data.get('I1')
-            if now_current >= motor.rated_current or data.get('V1') > motor.rated_voltage*0.3:
+            if now_current >= motor.rated_current or data.get('V1') > motor.rated_voltage*0.5:
                 print(f"[run_dc_resistance_test] start read data")
                 for _ in range(5):
                     data:dict = self.device_manager.power_meter.read_data()
@@ -393,6 +414,18 @@ class TestRunner:
             self.system_init(3) # 3 phase system
             self.setup_ac_balance_and_check(motor)
 
+            cur_range = [0.5, 1, 2, 5, 10, 20]
+            # find > 0.6 rated current in the list
+            current_range = 20 
+            for i in range(len(cur_range)):
+                if cur_range[i] > motor.rated_current*6:
+                    current_range = cur_range[i]
+                    break
+            print(f"[run_load_test] setting current range to {current_range}")  
+            self.device_manager.power_meter.set_current_range(current_range)
+
+        # 
+
         
         print('[run_open_circuit_test] ”待測馬達請連結至負載測試系統”')
 
@@ -416,7 +449,7 @@ class TestRunner:
 
         print('[run_open_circuit_test] 啟動完成')
 
-        input('啟動完成, Press Enter to continue:')
+        # input('啟動完成, Press Enter to continue:')
         
         # q. 逐漸增加制動控制的輸出電流(DA output, 加載)
         # r. 連續  讀取 WT333  [電壓V 電流I, 功率P, 功率因數PF ]
@@ -443,7 +476,13 @@ class TestRunner:
                 print('[run_load_test] Retry with Single Phase Mode...')
                 return self.run_load_test(motor, run_with_single_phase=True)
 
-            if mechanical['speed'] <= motor.speed*0.5:
+            # if mechanical['speed'] <= motor.speed*0.7:
+            #     break
+
+            if power_meter.get('I1') >= 13:
+                print('[run_load_test] early stop, over current,{power_meter.get("I1")}')
+                break
+            if mechanical['speed'] <= 1:
                 break
 
         # t. 關閉測試電壓輸出Y27
@@ -453,13 +492,16 @@ class TestRunner:
         # u. 存入資料 
         motor.add_result_load_test(raw_data)
         # v. 結束測試 
+        print('[run_load_test] Test Done')
+        return True
+
     # 鐵損分離試驗
     def run_separate_excitation_test(self, motor:Motor):
         self.system_init(3) # 3 phase system
         self.setup_ac_balance_and_check(motor)
 
         print('[run_separate_excitation_test] ”待測馬達請脫離扭矩測試系統”')
-        input('Press Enter to continue:')
+        # input('Press Enter to continue:')
         
         # o. 設定ASR6450 輸出電壓=20%額定電壓(減少啟動電流衝擊) 設定外部輸出開關 (啟動測試電壓輸出Y24 OR Y25) , 逐漸調整輸出電壓到額定電壓的80%(每0.5 Sec增加 5%)等待3 Sec 讓系統穩定後, 開是測試:
         self.device_manager.plc_electric.set_motor_output_three()
@@ -501,7 +543,7 @@ class TestRunner:
         self.system_init(3) # 3 phase system    
         self.setup_ac_balance_and_check(motor)
         print('[run_separate_excitation_test] ”待測馬達請脫離扭矩測試系統”')
-        input('Press Enter to continue:')
+        # input('Press Enter to continue:')
         
         self.device_manager.plc_electric.set_motor_output_three()
             
@@ -536,7 +578,7 @@ class TestRunner:
                 break
         print(f"[run_frequency_drift] finetune done")
 
-        input('finetune done , Press Enter to continue:')
+        # input('finetune done , Press Enter to continue:')
 
         # save data
         raw_data = []
@@ -575,26 +617,26 @@ if __name__ == '__main__':
     #     pass
 
     # 220
-    # motor = Motor()
-    # motor.rated_voltage = 220
-    # motor.power_phases = 3
-    # motor.speed = 3600
-    # motor.rated_current = 3
-    # motor.frequency = 60
-    # motor.horsepower = 1
-    # motor.poles = 2
-    # motor.no_load_current = 0.8
+    motor = Motor()
+    motor.rated_voltage = 220
+    motor.power_phases = 3
+    motor.speed = 3600
+    motor.rated_current = 3
+    motor.frequency = 60
+    motor.horsepower = 1
+    motor.poles = 2
+    motor.no_load_current = 0.8
     
     # 110
-    motor = Motor()
-    motor.rated_voltage = 110
-    motor.power_phases = 1
-    motor.speed = 1800 
-    motor.rated_current = 1.5
-    motor.frequency = 60
-    motor.horsepower = 0.25
-    motor.poles = 4
-    motor.no_load_current = 0.8
+    # motor = Motor()
+    # motor.rated_voltage = 110
+    # motor.power_phases = 1
+    # motor.speed = 1800 
+    # motor.rated_current = 1.5
+    # motor.frequency = 60
+    # motor.horsepower = 0.25
+    # motor.poles = 4
+    # motor.no_load_current = 0.8
 
     test_runner = TestRunner(device_manager)
     print(test_runner.device_manager.power_meter.get_serial_number())
@@ -602,9 +644,9 @@ if __name__ == '__main__':
 
 
     # test_runner.system_init(1)
-    # test_runner.test_dc_resistance(motor)
+    # test_runner.run_dc_resistance_test(motor)
     # test_runner.run_open_circuit_test(motor)
-    # test_runner.run_lock_rotor_test(motor)
+    test_runner.run_lock_rotor_test(motor)
     # test_runner.run_load_test(motor)
     # test_runner.run_separate_excitation_test(motor)
 

@@ -200,6 +200,13 @@ class PowerMeterWT330:
         '''
 
         return self._generic_command(f"INPut:VOLTage:RANGe {range}")
+    
+    # [:INPut]:CURRent:RANGe
+    def set_current_range(self, range):
+        '''
+            <Current> = 0.5, 1, 2, 5, 10, 20(A)
+        '''
+        return self._generic_command(f"INPut:CURRent:RANGe {range}")
 
 
 if __name__ == "__main__":

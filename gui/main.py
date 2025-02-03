@@ -330,7 +330,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         motor_json = self.motor.to_dict()
         timestamp = self.motor.make_time_stamp()
         # a save dialog to save the file
-        file_name, _ = QFileDialog.getSaveFileName(self, 'Save Project', f'{timestamp}.motor.json', 'MOTOR JSON File (*.motor.json)')
+        file_name, _ = QFileDialog.getSaveFileName(self, 'Save Project', f'{self.motor.model}_{timestamp}.motor.json', 'MOTOR JSON File (*.motor.json)')
         if file_name:
             with open(file_name, 'w', encoding='UTF8') as f:
                 json.dump(motor_json, f, indent=4, ensure_ascii=False)
@@ -532,7 +532,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             
         self.mpl_separate_excitation.clear_plot()
         if self.motor.result_separate_excitation:
-            pass
+            self.motor.plot_separate_excitation(self.mpl_separate_excitation.get_axes())
+            # pass
             # self.motor.plot_separate_excitation(self.mpl_separate_excitation.get_axes())
         
         self.mpl_frequency_drift.clear_plot()

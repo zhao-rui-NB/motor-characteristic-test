@@ -2,6 +2,9 @@
 from datetime import datetime
 import matplotlib.pyplot as plt
 
+# set plot font
+plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei']
+
 class Motor:
     def __init__(self):
         
@@ -151,7 +154,11 @@ class Motor:
 
         resistance = [ v / i for v, i in zip(voltage, current) ]
 
-        self.result_dc_resistance = sum(resistance) / len(resistance) / 1.5
+        if self.is_single_phase():
+            self.result_dc_resistance = sum(resistance) / len(resistance)
+        else:
+            self.result_dc_resistance = sum(resistance) / len(resistance) / 1.5
+        
         self.result_dc_resistance = round(self.result_dc_resistance, 4)
         print(f"DC Resistance: {self.result_dc_resistance}")
 
@@ -263,7 +270,7 @@ class Motor:
         if not raw_data:
             print('No data for Load Test')
             return
-        print(raw_data)
+        # print(raw_data)
 
         speeds = [ d['mechanical']['speed'] for d in raw_data ] 
         torques = [ d['mechanical']['torque'] for d in raw_data ]
@@ -293,7 +300,128 @@ class Motor:
               
     
     def analyze_separate_excitation(self):
-        pass
+        if not self.data_separate_excitation:
+            print('No data for Separate Excitation')
+            return
+
+        print(f"Analyzing Separate Excitation from {self.data_separate_excitation[-1]['timestamp']}")
+        raw_data = self.data_separate_excitation[-1]['raw_data']
+
+        voltage = []
+        current = []
+        power = []
+
+        if self.is_single_phase():
+            voltage.extend([ d['power_meter']['V1'] for d in raw_data ])
+            current.extend([ d['power_meter']['I1'] for d in raw_data ])
+            power.extend([ d['power_meter']['P1'] for d in raw_data ])
+        else:
+            voltage.extend([ d['power_meter']['V_SIGMA'] for d in raw_data ])
+            current.extend([ d['power_meter']['I_SIGMA'] for d in raw_data ])
+            power.extend([ d['power_meter']['P_SIGMA'] for d in raw_data ])
+
+        print('voltage', voltage)
+        # print('current', current)
+        print('power', power)
+
+        self.result_separate_excitation = {
+            'voltage': voltage,
+            'current': current,
+            'power': power,
+        }
+    
+    def plot_separate_excitation(self, ax:plt.Axes=None, show=True):
+        if ax is None:
+            fig, ax = plt.subplots()
+        
+        data = self.result_separate_excitation
+        current = data['current']
+        voltage = data['voltage']
+        voltage_sq = [ v**2 for v in voltage ]
+        # current = data['current']
+        power = data['power']
+        # power - 3* I^2 * self.result_dc_resistance 
+        for i, p in enumerate(power):
+            power[i] = p - 3 * self.result_dc_resistance * current[i]**2
+            
+        
+        
+
+
+
+
+        # voltage sort is reversed
+        # find 80% and 100% voltage point inedex
+        voltage_80_index = -1
+        voltage_100_index = 0
+        for i, v in enumerate(voltage):
+            if v < self.rated_voltage * 0.8:
+                voltage_80_index = i
+                break
+        for i, v in enumerate(voltage):
+            if v < self.rated_voltage * 0.9:
+                voltage_100_index = i
+                break
+
+        print('voltage_80_index', voltage_80_index, voltage[voltage_80_index], power[voltage_80_index])
+        print('voltage_100_index', voltage_100_index, voltage[voltage_100_index], power[voltage_100_index])
+
+        # draw voltage^2 vs power
+
+        # clear the plot
+        ax.clear()
+
+        ax.plot(voltage_sq, power, 'ro-', label='原始資料')
+        ax.set_title('Separate Excitation')
+        ax.set_xlabel('Voltage^2 (V^2)')
+        ax.set_ylabel('Power (W)')
+
+        line_x = [voltage[voltage_80_index]**2, voltage[voltage_100_index]**2]
+        line_y = [power[voltage_80_index], power[voltage_100_index]]
+        ax.plot(line_x, line_y, 'b-')
+
+        m = (line_y[1] - line_y[0]) / (line_x[1] - line_x[0])
+        b = line_y[0] - m * line_x[0]
+
+        print('m', m, 'b', b)
+
+        # line1_x = [0, line_x[0]]
+        # line1_y = [b, line_y[0]]
+        # ax.plot(line1_x, line1_y, 'g-')
+
+        line2_x = voltage_sq
+        line2_y = [ m * x + b for x in line2_x ]
+
+        ax.plot(line2_x, line2_y, 'y-', label='線性回歸')
+
+        # 飽和損失 power - line2_y
+        line3_x = voltage_sq
+        line3_y = [ p - l for p, l in zip(power, line2_y) ]
+
+        ax.plot(line3_x, line3_y, 'go-', label='飽和損失')
+
+        # polt y =0
+        ax.axhline(y=0, color='k', linestyle='--')
+
+        # name the line, legend
+        # ax.legend(['Data', 'Linear Fit', 'Saturation Loss'])
+
+        ax.legend()
+
+
+
+        
+
+        if show:
+            plt.show()
+
+
+
+
+        
+
+
+    
 
     def analyze_frequency_drift(self):
         pass
@@ -414,7 +542,8 @@ if __name__ == '__main__':
     
     
     # %%
-    file_path = 'test_file/2025_0201_merged.motor.json'
+    # file_path = 'test_file/2025_0201_merged.motor.json'
+    file_path = 'test_file/QA123_20250203_151517.motor.json'
     with open(file_path, 'r', encoding='utf8') as f:
         data = json.load(f)
         motor.from_dict(data)
@@ -424,8 +553,11 @@ if __name__ == '__main__':
     # motor.analyze_open_circuit()    
     # motor.analyze_locked_rotor()
     
-    motor.analyze_load_test()
-    motor.load_test_plot()  
+    # motor.analyze_load_test()
+    # motor.load_test_plot()  
+
+    motor.analyze_separate_excitation()
+    motor.plot_separate_excitation(show=True)
     
     
     
