@@ -1,7 +1,8 @@
 # %%
 from datetime import datetime
 import matplotlib.pyplot as plt
-
+import os 
+import csv
 # set plot font
 plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei']
 
@@ -18,13 +19,8 @@ class Motor:
         self.poles = None
         self.no_load_current = None
         
-        # motor information
-        self.manufacturer = None
-        self.model = None
-        self.serial_number = None
-        self.note = None
-        
-        
+        # motor information dictionary
+        self.information_dict = {}
         
         # test data log
         self.data_dc_resistance = []
@@ -41,7 +37,9 @@ class Motor:
         self.result_load_test = None
         self.result_separate_excitation = None
         self.result_frequency_drift = None
-        
+    
+    def update_motor_information(self, key, value):
+        self.information_dict[key] = value
         
     def make_time_stamp(self):
         # UTC time
@@ -99,10 +97,11 @@ class Motor:
         }
         self.data_locked_rotor.append(res)
         
-    def add_result_load_test(self, raw_data):
+    def add_result_load_test(self, raw_data, is_single_phase_high_current=False):
         res = {
             'timestamp': self.make_time_stamp(),
-            'raw_data' : raw_data, 
+            'is_single_phase_high_current': is_single_phase_high_current,
+            'raw_data' : raw_data,
         }
         self.data_load.append(res)
         
@@ -210,7 +209,6 @@ class Motor:
         }
         
         print(f"Open Circuit: {self.result_open_circuit}")
-
         
     def analyze_locked_rotor(self):
         if not self.data_locked_rotor:
@@ -258,7 +256,6 @@ class Motor:
         }
         
         print(f"Locked Rotor: {self.result_locked_rotor}")
-        
     
     def analyze_load_test(self):
         if not self.data_load:
@@ -274,31 +271,135 @@ class Motor:
 
         speeds = [ d['mechanical']['speed'] for d in raw_data ] 
         torques = [ d['mechanical']['torque'] for d in raw_data ]
+        power_output = [ speed*torque / 9.5493 for speed, torque in zip(speeds, torques) ]
+
+
+        if self.is_single_phase():
+            if not self.data_load[-1].get('is_single_phase_high_current', False):
+                current = [ d['power_meter']['I1'] for d in raw_data ]
+                power_input = [ d['power_meter']['P1'] for d in raw_data ]
+                power_factor = [ d['power_meter']['LAMBDA1'] for d in raw_data ]
+            else:
+                current = [ d['power_meter']['I2'] for d in raw_data ]
+                power_input = [ d['power_meter']['P2'] for d in raw_data ]
+                power_factor = [ d['power_meter']['LAMBDA2'] for d in raw_data ]
+        else:
+            current = [ d['power_meter']['I_SIGMA'] for d in raw_data ]
+            power_input = [ d['power_meter']['P_SIGMA'] for d in raw_data ]
+            power_factor = [ d['power_meter']['LAMBDA_SIGMA'] for d in raw_data ]
+        # fix div by zero
+        # efficiency = [ po / pi * 100 for po, pi in zip(power_output, power_input) ]
+        efficiency = []
+        for po, pi in zip(power_output, power_input):
+            if pi == 0:
+                efficiency.append(0)
+            else:
+                efficiency.append(po / pi)
+        
+        # remove speed < 500 data , find the speed < 500 index
+        # speeds is sorted reversed
+        print('speeds', speeds)
+
+        speed_500_index = -1
+        for i, s in enumerate(speeds):
+            if s < 500:
+                speed_500_index = i
+                break
+        speeds = speeds[:speed_500_index]
+        torques = torques[:speed_500_index]
+        current = current[:speed_500_index]
+        power_input = power_input[:speed_500_index]
+        power_output = power_output[:speed_500_index]
+        power_factor = power_factor[:speed_500_index]
+        efficiency = efficiency[:speed_500_index]
+
+
         self.result_load_test = {
             'speeds': speeds,
             'torques': torques,
-        }
-        
-    def polt_load_test(self, ax:plt.Axes=None, show=True):
-        if ax is None:
-            fig, ax = plt.subplots()
+            'current': current,
+            'power_input': power_input,
+            'power_output': power_output,
+            'power_factor': power_factor,
+            'efficiency': efficiency,
             
+        }
+
+        # # for print 
+        # for key, value in self.result_load_test.items():
+        #     print(key, value)        
+    def polt_load_test(self, axs: list[plt.Axes]=None, show=False):
+        print('plot_load_test')
+        print('axs', axs)   
+        if axs is None:
+            fig, axs = plt.subplots(2, 2, figsize=(12, 8))
+            axs = [axs[0, 0], axs[0, 1], axs[1, 0], axs[1, 1]]
+
+        # data key: speeds, torques, current, power_input, power_output, power_factor, efficiency    
         data = self.result_load_test
+        
+        # polt 4 figures
+        # 1 speed vs torque
+        # 2 speed vs power_input and power_output
+        # 3 speed vs current
+        # 4 speed vs efficiency and power factor
         speeds = data['speeds']
         torques = data['torques']
+        current = data['current']
+        power_input = data['power_input']
+        power_output = data['power_output']
+        power_factor = data['power_factor']
+        efficiency = data['efficiency']
 
         # clear the plot
-        ax.clear()
-        
-        ax.plot(speeds, torques, 'ro-')
-        ax.set_title('Load Test')
-        ax.set_xlabel('Speed (rpm)')
-        ax.set_ylabel('Torque (Nm)')
-        
+        axs[0].clear()
+        axs[1].clear()
+        axs[2].clear()
+        axs[3].clear()
+
+        # 1 speed vs torque
+        axs[0].plot(speeds, torques, 'ro-')
+        axs[0].set_title('Speed vs Torque')
+        axs[0].set_xlabel('Speed (RPM)')
+        axs[0].set_ylabel('Torque (Nm)')
+
+        # 2 speed vs power_input and power_output
+        axs[1].plot(speeds, power_input, 'ro-', label='Input Power')
+        axs[1].plot(speeds, power_output, 'bo-', label='Output Power')
+        axs[1].set_title('Speed vs Power')
+        axs[1].set_xlabel('Speed (RPM)')
+        axs[1].set_ylabel('Power (W)')
+        axs[1].legend()
+
+        # 3 speed vs current
+        axs[2].plot(speeds, current, 'ro-')
+        axs[2].set_title('Speed vs Current')
+        axs[2].set_xlabel('Speed (RPM)')
+        axs[2].set_ylabel('Current (A)')
+
+        # 4 speed vs efficiency and power factor
+        axs[3].plot(speeds, efficiency, 'ro-', label='Efficiency')
+        axs[3].plot(speeds, power_factor, 'bo-', label='Power Factor')
+        axs[3].set_title('Speed vs Efficiency and Power Factor')
+        axs[3].set_xlabel('Speed (RPM)')
+        axs[3].set_ylabel('Efficiency / Power Factor')
+        axs[3].legend()
+
+        # call draw
+        axs[0].figure.tight_layout()
+        axs[0].figure.canvas.draw()
+        axs[1].figure.tight_layout()
+        axs[1].figure.canvas.draw()
+        axs[2].figure.tight_layout()
+        axs[2].figure.canvas.draw()
+        axs[3].figure.tight_layout()
+        axs[3].figure.canvas.draw()
+
+
         if show:
+            plt.tight_layout()
             plt.show()
               
-    
     def analyze_separate_excitation(self):
         if not self.data_separate_excitation:
             print('No data for Separate Excitation')
@@ -319,10 +420,6 @@ class Motor:
             voltage.extend([ d['power_meter']['V_SIGMA'] for d in raw_data ])
             current.extend([ d['power_meter']['I_SIGMA'] for d in raw_data ])
             power.extend([ d['power_meter']['P_SIGMA'] for d in raw_data ])
-
-        print('voltage', voltage)
-        # print('current', current)
-        print('power', power)
 
         self.result_separate_excitation = {
             'voltage': voltage,
@@ -363,8 +460,8 @@ class Motor:
                 voltage_100_index = i
                 break
 
-        print('voltage_80_index', voltage_80_index, voltage[voltage_80_index], power[voltage_80_index])
-        print('voltage_100_index', voltage_100_index, voltage[voltage_100_index], power[voltage_100_index])
+        # print('voltage_80_index', voltage_80_index, voltage[voltage_80_index], power[voltage_80_index])
+        # print('voltage_100_index', voltage_100_index, voltage[voltage_100_index], power[voltage_100_index])
 
         # draw voltage^2 vs power
 
@@ -383,7 +480,7 @@ class Motor:
         m = (line_y[1] - line_y[0]) / (line_x[1] - line_x[0])
         b = line_y[0] - m * line_x[0]
 
-        print('m', m, 'b', b)
+        # print('m', m, 'b', b)
 
         # line1_x = [0, line_x[0]]
         # line1_y = [b, line_y[0]]
@@ -415,18 +512,8 @@ class Motor:
         if show:
             plt.show()
 
-
-
-
-        
-
-
-    
-
     def analyze_frequency_drift(self):
         pass
-    
-        
     
     
     def to_dict(self):
@@ -441,10 +528,8 @@ class Motor:
             'poles': self.poles,
             'no_load_current': self.no_load_current,
             # motor information
-            'manufacturer': self.manufacturer,
-            'model': self.model,
-            'serial_number': self.serial_number,
-            'note': self.note,
+
+            'information_dict': self.information_dict,
             
             'test_results': {
                 'result_dc_resistance': self.result_dc_resistance,
@@ -476,10 +561,7 @@ class Motor:
         self.poles = data['poles']
         self.no_load_current = data['no_load_current']
         # motor information
-        self.manufacturer = data['manufacturer']
-        self.model = data['model']
-        self.serial_number = data['serial_number']
-        self.note = data['note']
+        self.information_dict = data['information_dict']
         
         self.result_dc_resistance = data['test_results']['result_dc_resistance']
         self.result_open_circuit = data['test_results']['result_open_circuit']
@@ -495,10 +577,57 @@ class Motor:
         self.data_load = data['test_data_log']['data_load']
         self.data_separate_excitation = data['test_data_log']['data_separate_excitation']
         self.frequency_drift = data['test_data_log']['frequency_drift']
-        
-        
     
+    def _raw_data_to_csv(self, data_log):
+        raw_data = data_log['raw_data']
         
+        header = [] 
+        write_data = []
+
+        for frame in raw_data: # 10 frames
+            new_data_row = []
+            for device in frame.keys(): # {'power_meter': {key: value}, 'mechanical': {key: value}} 
+                for key, value in frame[device].items():
+                    if key not in header:
+                        header.append(key)
+                    new_data_row.append(value)
+            write_data.append(new_data_row)
+        # print('header', header)
+        # print('write_data', write_data)
+        return header, write_data
+    
+    def save_to_csv_files(self, save_dir, file_name_prefix=None):
+        os.makedirs(save_dir, exist_ok=True)
+        if file_name_prefix is None:
+            file_name_prefix = self.make_time_stamp()
+
+
+        # test raw data export list
+        raw_data_export_list = [
+            ('dc_resistance', self.data_dc_resistance),
+            ('open_circuit', self.data_open_circuit),
+            ('locked_rotor', self.data_locked_rotor),
+            ('load_test', self.data_load),
+            ('separate_excitation', self.data_separate_excitation),
+            ('frequency_drift', self.frequency_drift),
+        ]
+
+        for test_name, data_log in raw_data_export_list:
+            if not data_log or len(data_log) == 0:
+                continue
+            header, write_data = self._raw_data_to_csv(data_log[-1])
+            with open(f'{save_dir}/{file_name_prefix}_{test_name}.csv', 'w') as f:
+                writer = csv.writer(f, lineterminator='\n')    
+                writer.writerow(header)
+                for row in write_data:
+                    writer.writerow(row)
+
+        # export motor information
+        with open(f'{save_dir}/{file_name_prefix}_motor_information.csv', 'w', encoding='utf8') as f:
+            writer = csv.writer(f, lineterminator='\n')    
+            writer.writerow(['key', 'value'])
+            for key, value in self.information_dict.items():
+                writer.writerow([key, value])
         
         
 if __name__ == '__main__':
@@ -543,21 +672,24 @@ if __name__ == '__main__':
     
     # %%
     # file_path = 'test_file/2025_0201_merged.motor.json'
-    file_path = 'test_file/QA123_20250203_151517.motor.json'
+    # file_path = 'test_file/QA123_20250203_151517.motor.json'
+    file_path ='test_file\QA123_20250203_170449.motor.json'
     with open(file_path, 'r', encoding='utf8') as f:
         data = json.load(f)
         motor.from_dict(data)
-        
+
+    motor.save_to_csv_files('./rm_test_csv', 'ttttttt')
+
     # print(json.dumps(motor.to_dict(), indent=4))
     # motor.analyze_dc_resistance()
     # motor.analyze_open_circuit()    
     # motor.analyze_locked_rotor()
     
     # motor.analyze_load_test()
-    # motor.load_test_plot()  
+    # motor.polt_load_test(show=True)
 
-    motor.analyze_separate_excitation()
-    motor.plot_separate_excitation(show=True)
+    # motor.analyze_separate_excitation()
+    # motor.plot_separate_excitation(show=True)
     
     
     

@@ -82,6 +82,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_save.clicked.connect(self.on_save_project)
         self.btn_open.clicked.connect(self.on_open_project)
         self.btn_new.clicked.connect(self.on_new_project)
+        self.btn_save_csv.clicked.connect(self.on_btn_save_csv)
         
         # motor parameter
         # set all line edit input check 
@@ -103,12 +104,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_para_power_phases.editingFinished.connect(lambda: self.on_motor_parameter_edited('power_phases', self.lineEdit_para_power_phases.text()))
         self.lineEdit_para_speed.editingFinished.connect(lambda: self.on_motor_parameter_edited('speed', self.lineEdit_para_speed.text()))
         # other motor info
-        self.lineEdit_para_other1.editingFinished.connect(lambda: self.on_motor_parameter_edited('manufacturer', self.lineEdit_para_other1.text()))
-        self.lineEdit_para_other2.editingFinished.connect(lambda: self.on_motor_parameter_edited('model', self.lineEdit_para_other2.text()))
-        self.lineEdit_para_other3.editingFinished.connect(lambda: self.on_motor_parameter_edited('serial_number', self.lineEdit_para_other3.text()))
-        self.lineEdit_para_other4.editingFinished.connect(lambda: self.on_motor_parameter_edited('note', self.lineEdit_para_other4.text()))
+        # self.lineEdit_para_other1.editingFinished.connect(lambda: self.on_motor_parameter_edited('manufacturer', self.lineEdit_para_other1.text()))
+        # self.lineEdit_para_other2.editingFinished.connect(lambda: self.on_motor_parameter_edited('model', self.lineEdit_para_other2.text()))
+        # self.lineEdit_para_other3.editingFinished.connect(lambda: self.on_motor_parameter_edited('serial_number', self.lineEdit_para_other3.text()))
+        # self.lineEdit_para_other4.editingFinished.connect(lambda: self.on_motor_parameter_edited('note', self.lineEdit_para_other4.text()))
         
-        
+        # 試驗日期 lineEdit_para_other_3
+        self.lineEdit_para_other_3.editingFinished.connect(lambda: self.motor.update_motor_information('試驗日期', self.lineEdit_para_other_3.text()))
+        # 檢驗員 lineEdit_para_other_4
+        self.lineEdit_para_other_4.editingFinished.connect(lambda: self.motor.update_motor_information('檢驗員', self.lineEdit_para_other_4.text()))
+        # 印表日期 lineEdit_para_other_5
+        self.lineEdit_para_other_5.editingFinished.connect(lambda: self.motor.update_motor_information('印表日期', self.lineEdit_para_other_5.text()))
+        # 電腦編號 lineEdit_para_other_6
+        self.lineEdit_para_other_6.editingFinished.connect(lambda: self.motor.update_motor_information('電腦編號', self.lineEdit_para_other_6.text()))
+        # 序號 lineEdit_para_other_7 
+        self.lineEdit_para_other_7.editingFinished.connect(lambda: self.motor.update_motor_information('序號', self.lineEdit_para_other_7.text()))
+        # 型式 lineEdit_para_other_8
+        self.lineEdit_para_other_8.editingFinished.connect(lambda: self.motor.update_motor_information('型式', self.lineEdit_para_other_8.text()))
+        # 工作單號 lineEdit_para_other_9
+        self.lineEdit_para_other_9.editingFinished.connect(lambda: self.motor.update_motor_information('工作單號', self.lineEdit_para_other_9.text()))
+        # 製造號碼 lineEdit_para_other_10
+        self.lineEdit_para_other_10.editingFinished.connect(lambda: self.motor.update_motor_information('製造號碼', self.lineEdit_para_other_10.text()))
+        # 廠牌 lineEdit_para_other_11
+        self.lineEdit_para_other_11.editingFinished.connect(lambda: self.motor.update_motor_information('廠牌', self.lineEdit_para_other_11.text()))
+        # 定子規格 lineEdit_para_other_12
+        self.lineEdit_para_other_12.editingFinished.connect(lambda: self.motor.update_motor_information('定子規格', self.lineEdit_para_other_12.text()))
+        # 轉子規格 lineEdit_para_other_13
+        self.lineEdit_para_other_13.editingFinished.connect(lambda: self.motor.update_motor_information('轉子規格', self.lineEdit_para_other_13.text()))
+        # 本線 lineEdit_para_other_14
+        self.lineEdit_para_other_14.editingFinished.connect(lambda: self.motor.update_motor_information('本線', self.lineEdit_para_other_14.text()))
+        # 啟動線 lineEdit_para_other_15
+        self.lineEdit_para_other_15.editingFinished.connect(lambda: self.motor.update_motor_information('啟動線', self.lineEdit_para_other_15.text()))
+        # 備註 plainTextEdit_para_other
+        self.plainTextEdit_para_other.textChanged.connect(lambda: self.motor.update_motor_information('備註', self.plainTextEdit_para_other.toPlainText()))
+
+
         # auto test manual btn
         self.btn_dc_resistance_test.clicked.connect(self.on_dc_resistance_clicked)
         self.btn_no_load_test.clicked.connect(self.on_no_load_test_clicked)
@@ -312,12 +342,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_para_speed.setText(str(self.motor.speed) if self.motor.speed else '')
         
         # other 
-        self.lineEdit_para_other1.setText(self.motor.manufacturer if self.motor.manufacturer else '')
-        self.lineEdit_para_other2.setText(self.motor.model if self.motor.model else '')
-        self.lineEdit_para_other3.setText(self.motor.serial_number if self.motor.serial_number else '')
-        self.lineEdit_para_other4.setText(self.motor.note if self.motor.note else '')
+        # self.lineEdit_para_other1.setText(self.motor.manufacturer if self.motor.manufacturer else '')
+        # self.lineEdit_para_other2.setText(self.motor.model if self.motor.model else '')
+        # self.lineEdit_para_other3.setText(self.motor.serial_number if self.motor.serial_number else '')
+        # self.lineEdit_para_other4.setText(self.motor.note if self.motor.note else '')
+
+        self.lineEdit_para_other_3.setText(self.motor.information_dict.get('試驗日期', ''))
+        self.lineEdit_para_other_4.setText(self.motor.information_dict.get('檢驗員', ''))
+        self.lineEdit_para_other_5.setText(self.motor.information_dict.get('印表日期', ''))
+        self.lineEdit_para_other_6.setText(self.motor.information_dict.get('電腦編號', ''))
+        self.lineEdit_para_other_7.setText(self.motor.information_dict.get('序號', ''))
+        self.lineEdit_para_other_8.setText(self.motor.information_dict.get('型式', ''))
+        self.lineEdit_para_other_9.setText(self.motor.information_dict.get('工作單號', ''))
+        self.lineEdit_para_other_10.setText(self.motor.information_dict.get('製造號碼', ''))
+        self.lineEdit_para_other_11.setText(self.motor.information_dict.get('廠牌', ''))
+        self.lineEdit_para_other_12.setText(self.motor.information_dict.get('定子規格', ''))
+        self.lineEdit_para_other_13.setText(self.motor.information_dict.get('轉子規格', ''))
+        self.lineEdit_para_other_14.setText(self.motor.information_dict.get('本線', ''))
+        self.lineEdit_para_other_15.setText(self.motor.information_dict.get('啟動線', ''))
         
-    
+        self.plainTextEdit_para_other.setPlainText(self.motor.information_dict.get('備註', ''))
+
+
+
     ##############################################################################
     # File operation
     ##############################################################################
@@ -330,9 +377,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         motor_json = self.motor.to_dict()
         timestamp = self.motor.make_time_stamp()
         # a save dialog to save the file
-        file_name, _ = QFileDialog.getSaveFileName(self, 'Save Project', f'{self.motor.model}_{timestamp}.motor.json', 'MOTOR JSON File (*.motor.json)')
+        # get model
+        model = self.motor.information_dict.get('型式', 'model')
+        file_name, _ = QFileDialog.getSaveFileName(self, 'Save Project', f'{model}_{timestamp}.motor.json', 'MOTOR JSON File (*.motor.json)')
         if file_name:
             with open(file_name, 'w', encoding='UTF8') as f:
+                # printdict
+                print(motor_json)
                 json.dump(motor_json, f, indent=4, ensure_ascii=False)
             self.update_file_save_status(True)
     
@@ -371,7 +422,20 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_test_result_page()
         
         self.update_file_save_status(True)
-        
+    
+    def on_btn_save_csv(self):
+        timestamp = self.motor.make_time_stamp()
+        # a save dialog to save the file
+        # get model
+        model = self.motor.information_dict.get('型式', 'model')
+        default_dir = f'{model}_{timestamp}'
+
+        # ask user choose the directory
+        dir_name = QFileDialog.getExistingDirectory(self, 'Save CSV', default_dir)
+        if dir_name:
+            self.motor.save_to_csv_files(dir_name, default_dir)
+            QMessageBox.information(self, 'Success', 'CSV檔案儲存成功')
+
     
     ##############################################################################
     # Auto Test page
@@ -522,13 +586,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         ###### todo load, separate_excitation, frequency_drift
         ###### figure update
-        print('self.motor.result_load_test', self.motor.result_load_test)
+        # print('self.motor.result_load_test', self.motor.result_load_test)
         # if self.motor.result_load_test:
         
         
         self.mpl_load.clear_plot()
+        self.mpl_load_2.clear_plot()
+        self.mpl_load_3.clear_plot()
+        self.mpl_load_4.clear_plot()
+
         if self.motor.result_load_test:
-            self.motor.polt_load_test(self.mpl_load.get_axes())
+            ax0 = self.mpl_load.get_axes()
+            ax1 = self.mpl_load_2.get_axes()
+            ax2 = self.mpl_load_3.get_axes()
+            ax3 = self.mpl_load_4.get_axes()
+            
+            axs = [ax0, ax1, ax2, ax3]  
+            # test plot
+            ax0.plot([1,2,3,4,5], [1,2,3,4,5])
+            ax1.plot([1,2,3,4,5], [1,2,3,4,5])
+            ax2.plot([1,2,3,4,5], [1,2,3,4,5])
+            ax3.plot([1,2,3,4,5], [1,2,3,4,5])            
+            self.motor.polt_load_test(axs=axs)
+
             
         self.mpl_separate_excitation.clear_plot()
         if self.motor.result_separate_excitation:

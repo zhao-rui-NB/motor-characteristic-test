@@ -490,7 +490,7 @@ class TestRunner:
         self.device_manager.plc_electric.set_motor_output_off()
         self.device_manager.plc_mechanical.set_break(0)
         # u. 存入資料 
-        motor.add_result_load_test(raw_data)
+        motor.add_result_load_test(raw_data, run_with_single_phase)
         # v. 結束測試 
         print('[run_load_test] Test Done')
         return True
