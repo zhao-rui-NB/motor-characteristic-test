@@ -22,7 +22,7 @@ class Qthread_test_delay(QThread):
         self.signal_finish.emit(True)        
 
 
-class Qthread_run_dc_resistance_test(QThread):
+class Qthread_run_dc_resistance_cold_test(QThread):
     signal_finish = pyqtSignal(bool)
     def __init__(self, test_runner:TestRunner, motor:Motor):
         super().__init__()
@@ -30,10 +30,24 @@ class Qthread_run_dc_resistance_test(QThread):
         self.motor = motor
     def run(self):
         try:
-            succ = self.test_runner.run_dc_resistance_test(self.motor)
+            succ = self.test_runner.run_dc_resistance_test(self.motor, is_hot_test=False)
             self.signal_finish.emit(succ)
         except Exception as e:
-            print(f"[Qthread_run_dc_resistance_test] error: {e}")
+            print(f"[Qthread_run_dc_resistance_cold_test] error: {e}")
+            self.signal_finish.emit(False)
+            
+class Qthread_run_dc_resistance_hot_test(QThread):
+    signal_finish = pyqtSignal(bool)
+    def __init__(self, test_runner:TestRunner, motor:Motor):
+        super().__init__()
+        self.test_runner = test_runner
+        self.motor = motor
+    def run(self):
+        try:
+            succ = self.test_runner.run_dc_resistance_test(self.motor, is_hot_test=True)
+            self.signal_finish.emit(succ)
+        except Exception as e:
+            print(f"[Qthread_run_dc_resistance_hot_test] error: {e}")
             self.signal_finish.emit(False)
             
 class Qthread_run_open_circuit_test(QThread):
@@ -105,6 +119,22 @@ class Qthread_run_frequency_drift_test(QThread):
         except Exception as e:
             print(f"[Qthread_run_frequency_drift_test] error: {e}")
             self.signal_finish.emit(False)
+            
+            
+class Qthread_run_CNS14400_test(QThread):
+    signal_finish = pyqtSignal(bool)
+    def __init__(self, test_runner:TestRunner, motor:Motor):
+        super().__init__()
+        self.test_runner = test_runner
+        self.motor = motor
+    def run(self):
+        try:
+            succ = self.test_runner.run_CNS14400_test(self.motor)
+            self.signal_finish.emit(succ)
+        except Exception as e:
+            print(f"[Qthread_run_CNS14400_test] error: {e}")
+            self.signal_finish.emit(False)
+            
 
 
         

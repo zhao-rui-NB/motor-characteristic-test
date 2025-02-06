@@ -23,20 +23,26 @@ class Motor:
         self.information_dict = {}
         
         # test data log
-        self.data_dc_resistance = []
+        # self.data_dc_resistance = []
+        self.data_dc_resistance_hot = []
+        self.data_dc_resistance_cold = []
         self.data_open_circuit = []
         self.data_locked_rotor = []
         self.data_load = []
         self.data_separate_excitation = []
-        self.frequency_drift = []
+        self.data_frequency_drift = []
+        self.data_CNS14400 = []
         
         # test results
-        self.result_dc_resistance = None
+        # self.result_dc_resistance = None
+        self.result_dc_resistance_hot = None
+        self.result_dc_resistance_cold = None
         self.result_open_circuit = None
         self.result_locked_rotor = None
         self.result_load_test = None
         self.result_separate_excitation = None
         self.result_frequency_drift = None
+        self.result_CNS14400 = None
     
     def update_motor_information(self, key, value):
         self.information_dict[key] = value
@@ -76,12 +82,16 @@ class Motor:
 
 
     # add test results
-    def add_result_dc_resistance(self, raw_data):
+    def add_result_dc_resistance(self, raw_data, is_hot_test):
         res = {
             'timestamp': self.make_time_stamp(),
             'raw_data' : raw_data,
         }
-        self.data_dc_resistance.append(res)
+        
+        if is_hot_test:
+            self.data_dc_resistance_hot.append(res)
+        else:
+            self.data_dc_resistance_cold.append(res)
     
     def add_result_open_circuit(self, raw_data):
         res = {
@@ -117,17 +127,34 @@ class Motor:
             'timestamp': self.make_time_stamp(),
             'raw_data' : raw_data, 
         }
-        self.frequency_drift.append(res)
+        self.data_frequency_drift.append(res)
     
+    def add_result_CNS14400(self, raw_data, is_high_load_mode):
+        res = {
+            'timestamp': self.make_time_stamp(),
+            'raw_data' : raw_data, 
+            'is_high_load_mode': is_high_load_mode,
+        }
+        self.data_CNS14400.append(res)  
     
     # analysis functions
-    def analyze_dc_resistance(self):
-        if not self.data_dc_resistance:
-            print('No data for DC Resistance')
-            return
-        print(f"Analyzing DC Resistance from {self.data_dc_resistance[-1]['timestamp']}")
+    def analyze_dc_resistance(self, is_hot_test=False):
+        if is_hot_test:
+            data_dc_resistance = self.data_dc_resistance_hot
+            if not data_dc_resistance:
+                print('No data for DC Resistance')
+                return
+            print(f"Analyzing DC Resistance from (data_dc_resistance_hot){data_dc_resistance[-1]['timestamp']}")
+        else:
+            data_dc_resistance = self.data_dc_resistance_cold
+            if not data_dc_resistance:
+                print('No data for DC Resistance')
+                return
+            print(f"Analyzing DC Resistance from (data_dc_resistance_cold){data_dc_resistance[-1]['timestamp']}")
+            
         
-        raw_data = self.data_dc_resistance[-1]['raw_data']
+        
+        raw_data = data_dc_resistance[-1]['raw_data']
 
         if self.is_single_phase():
             voltage = [ d['power_meter']['V1'] for d in raw_data ]
@@ -153,13 +180,20 @@ class Motor:
 
         resistance = [ v / i for v, i in zip(voltage, current) ]
 
-        if self.is_single_phase():
-            self.result_dc_resistance = sum(resistance) / len(resistance)
+        if is_hot_test:
+            if self.is_single_phase():
+                self.result_dc_resistance_hot = sum(resistance) / len(resistance)
+            else:
+                self.result_dc_resistance_hot = sum(resistance) / len(resistance) / 1.5
+            self.result_dc_resistance_hot = round(self.result_dc_resistance_hot, 4)
+            print(f"DC Resistance Hot: {self.result_dc_resistance_hot}")
         else:
-            self.result_dc_resistance = sum(resistance) / len(resistance) / 1.5
-        
-        self.result_dc_resistance = round(self.result_dc_resistance, 4)
-        print(f"DC Resistance: {self.result_dc_resistance}")
+            if self.is_single_phase():
+                self.result_dc_resistance_cold = sum(resistance) / len(resistance)
+            else:
+                self.result_dc_resistance_cold = sum(resistance) / len(resistance) / 1.5
+            self.result_dc_resistance_cold = round(self.result_dc_resistance_cold, 4)
+            print(f"DC Resistance Cold: {self.result_dc_resistance_cold}")
 
     def analyze_open_circuit(self):
         if not self.data_open_circuit:
@@ -298,7 +332,7 @@ class Motor:
         
         # remove speed < 500 data , find the speed < 500 index
         # speeds is sorted reversed
-        print('speeds', speeds)
+        # print('speeds', speeds)
 
         speed_500_index = -1
         for i, s in enumerate(speeds):
@@ -329,8 +363,6 @@ class Motor:
         # for key, value in self.result_load_test.items():
         #     print(key, value)        
     def polt_load_test(self, axs: list[plt.Axes]=None, show=False):
-        print('plot_load_test')
-        print('axs', axs)   
         if axs is None:
             fig, axs = plt.subplots(2, 2, figsize=(12, 8))
             axs = [axs[0, 0], axs[0, 1], axs[1, 0], axs[1, 1]]
@@ -426,7 +458,6 @@ class Motor:
             'current': current,
             'power': power,
         }
-    
     def plot_separate_excitation(self, ax:plt.Axes=None, show=True):
         if ax is None:
             fig, ax = plt.subplots()
@@ -439,14 +470,8 @@ class Motor:
         power = data['power']
         # power - 3* I^2 * self.result_dc_resistance 
         for i, p in enumerate(power):
-            power[i] = p - 3 * self.result_dc_resistance * current[i]**2
+            power[i] = p - 3 * self.result_dc_resistance_cold * current[i]**2
             
-        
-        
-
-
-
-
         # voltage sort is reversed
         # find 80% and 100% voltage point inedex
         voltage_80_index = -1
@@ -460,11 +485,7 @@ class Motor:
                 voltage_100_index = i
                 break
 
-        # print('voltage_80_index', voltage_80_index, voltage[voltage_80_index], power[voltage_80_index])
-        # print('voltage_100_index', voltage_100_index, voltage[voltage_100_index], power[voltage_100_index])
-
         # draw voltage^2 vs power
-
         # clear the plot
         ax.clear()
 
@@ -482,10 +503,6 @@ class Motor:
 
         # print('m', m, 'b', b)
 
-        # line1_x = [0, line_x[0]]
-        # line1_y = [b, line_y[0]]
-        # ax.plot(line1_x, line1_y, 'g-')
-
         line2_x = voltage_sq
         line2_y = [ m * x + b for x in line2_x ]
 
@@ -499,22 +516,307 @@ class Motor:
 
         # polt y =0
         ax.axhline(y=0, color='k', linestyle='--')
-
-        # name the line, legend
-        # ax.legend(['Data', 'Linear Fit', 'Saturation Loss'])
-
         ax.legend()
-
-
-
-        
-
+        # call draw
+        ax.figure.tight_layout()
+        ax.figure.canvas.draw()
         if show:
             plt.show()
 
     def analyze_frequency_drift(self):
-        pass
+        if not self.data_frequency_drift:
+            print('No data for Frequency Drift')
+            return
+        
+        print(f"Analyzing Frequency Drift from {self.data_frequency_drift[-1]['timestamp']}")
+        raw_data = self.data_load[-1]['raw_data']
+        if not raw_data:
+            print('No data for Frequency Drift')
+            return
+
+        speeds = [ d['mechanical']['speed'] for d in raw_data ] 
+        torques = [ d['mechanical']['torque'] for d in raw_data ]
+        power_output = [ speed*torque / 9.5493 for speed, torque in zip(speeds, torques) ]
+        frequency = [ d['power_meter']['FU1'] for d in raw_data ]
+
+        if self.is_single_phase():
+                current = [ d['power_meter']['I1'] for d in raw_data ]
+                power_input = [ d['power_meter']['P1'] for d in raw_data ]
+                power_factor = [ d['power_meter']['LAMBDA1'] for d in raw_data ]
+        else:
+            current = [ d['power_meter']['I_SIGMA'] for d in raw_data ]
+            power_input = [ d['power_meter']['P_SIGMA'] for d in raw_data ]
+            power_factor = [ d['power_meter']['LAMBDA_SIGMA'] for d in raw_data ]
+
+        # fix div by zero
+        # efficiency = [ po / pi * 100 for po, pi in zip(power_output, power_input) ]
+        efficiency = []
+        for po, pi in zip(power_output, power_input):
+            if pi == 0:
+                efficiency.append(0)
+            else:
+                efficiency.append(po / pi)
+
+        self.result_frequency_drift = {
+            'speeds': speeds,
+            'torques': torques,
+            'current': current,
+            'power_input': power_input,
+            'power_output': power_output,
+            'power_factor': power_factor,
+            'efficiency': efficiency,
+            'frequency': frequency,
+            
+        }
+    def plot_frequency_drift(self, ax:plt.Axes=None, show=True):
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(12, 6))
+        
+        data = self.result_frequency_drift
+        # draw frequency vs (torque, current, power_input, power_output, power_factor, efficiency)
+        
+        speeds = data['speeds']
+        torques = data['torques']
+        current = data['current']
+        power_input = data['power_input']
+        power_output = data['power_output']
+        power_factor = data['power_factor']
+        efficiency = data['efficiency']
+        frequency = data['frequency']
+        
+        # clear the plot
+        ax.clear()
+        
+        # ax1
+        ax1 = ax
+        ax1.plot(frequency, torques, 'ro-', label='Torque (Nm)')
+        ax1.set_ylabel('Torque (Nm)', color='r')
+        ax1.tick_params(axis='y', colors='r')
+        ax1.yaxis.set_label_position('left')
+        ax1.yaxis.tick_left()
+        
+        # ax2
+        ax2 = ax1.twinx()
+        ax2.spines['left'].set_position(('outward', 40))
+        ax2.plot(frequency, current, 'bo-', label='Current (A)')
+        ax2.set_ylabel('Current (A)', color='b')
+        ax2.tick_params(axis='y', colors='b')
+        ax2.yaxis.set_label_position('left')
+        ax2.yaxis.tick_left()
+        
+        # ax3
+        ax3 = ax1.twinx()
+        ax3.spines['left'].set_position(('outward', 80))
+        ax3.plot(frequency, power_input, 'go-', label='Input Power (W)')
+        ax3.plot(frequency, power_output, 'mo-', label='Output Power (W)')
+        ax3.set_ylabel('Power (W)', color='g')
+        ax3.tick_params(axis='y', colors='g')
+        ax3.yaxis.set_label_position('left')
+        ax3.yaxis.tick_left()
+        
+        # ax4
+        ax4 = ax1.twinx()
+        ax4.spines['left'].set_position(('outward', 120))
+        ax4.plot(frequency, power_factor, 'co-', label='Power Factor')
+        ax4.set_ylabel('Power Factor', color='c')
+        ax4.tick_params(axis='y', colors='c')
+        ax4.yaxis.set_label_position('left')
+        ax4.yaxis.tick_left()
+        
+        # ax5
+        ax5 = ax1.twinx()
+        ax5.spines['left'].set_position(('outward', 160))
+        ax5.plot(frequency, efficiency, 'yo-', label='Efficiency (%)')
+        ax5.set_ylabel('Efficiency (%)', color='y')
+        ax5.tick_params(axis='y', colors='y')
+        ax5.yaxis.set_label_position('left')
+        ax5.yaxis.tick_left()
+        
+        # set x label
+        ax1.set_xlabel('Frequency (Hz)')
+        ax1.set_title('Performance Curves vs Frequency', fontsize=16)
+        
+        # 合併圖例
+        lines1, labels1 = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        lines3, labels3 = ax3.get_legend_handles_labels()
+        lines4, labels4 = ax4.get_legend_handles_labels()
+        lines5, labels5 = ax5.get_legend_handles_labels()
+        ax1.legend(lines1 + lines2 + lines3 + lines4 + lines5, labels1 + labels2 + labels3 + labels4 + labels5, loc='center left')
+        
+        # call draw
+        ax1.figure.tight_layout()
+        ax1.figure.canvas.draw()
+        
+        if show:
+            plt.tight_layout()
+            plt.show()
     
+    def analyze_CNS14400(self):
+        if not self.data_CNS14400:
+            print('No data for CNS14400')
+            return
+        
+        print(f"Analyzing CNS14400 from {self.data_CNS14400[-1]['timestamp']}")
+        raw_data = self.data_CNS14400[-1]['raw_data']
+        
+        # print(raw_data)
+        # print(raw_data[0])
+        # print(raw_data[0]['power_meter'])
+        
+        group_num = len(raw_data)//6
+        print('group_num', group_num)
+        
+        # group to calculate the average value
+        # voltage
+        # current
+        # power_input
+        # nr
+        # speed 
+        # torque 
+        # power_output 
+        # power_factor 
+        # efficiency 
+        
+        speed = [ d['mechanical']['speed'] for d in raw_data ]
+        torque = [ d['mechanical']['torque'] for d in raw_data ]
+        power_output = [ speed*torque / 9.5493 for speed, torque in zip(speed, torque) ]
+        # nr = [ d['power_meter']['NR1'] for d in raw_data ]
+        
+        if self.is_single_phase():
+            voltage = [ d['power_meter']['V1'] for d in raw_data ]
+            current = [ d['power_meter']['I1'] for d in raw_data ]
+            power_input = [ d['power_meter']['P1'] for d in raw_data ]
+            power_factor = [ d['power_meter']['LAMBDA1'] for d in raw_data ]
+        
+        else:
+            voltage = [ d['power_meter']['V_SIGMA'] for d in raw_data ]
+            current = [ d['power_meter']['I_SIGMA'] for d in raw_data ]
+            power_input = [ d['power_meter']['P_SIGMA'] for d in raw_data ]
+            power_factor = [ d['power_meter']['LAMBDA_SIGMA'] for d in raw_data ]
+            
+        efficiency = []
+        for po, pi in zip(power_output, power_input):
+            if pi == 0:
+                efficiency.append(0)
+            else:
+                efficiency.append(po / pi)
+                
+        
+        # calculate the average value of each group
+        def group_average(data, group_num):
+            group_data = []
+            for i in range(0, len(data), group_num):
+                group_data.append(sum(data[i:i+group_num]) / group_num)
+            return group_data
+        
+        speed = group_average(speed, group_num)
+        torque = group_average(torque, group_num)
+        power_output = group_average(power_output, group_num)
+        voltage = group_average(voltage, group_num)
+        current = group_average(current, group_num)
+        power_input = group_average(power_input, group_num)
+        power_factor = group_average(power_factor, group_num)
+        efficiency = group_average(efficiency, group_num)
+        
+        # t max
+        t_max = max(torque)
+        p_max = max(power_output)   
+        
+        self.result_CNS14400 = {
+            'speed': speed,
+            'torque': torque,
+            'voltage': voltage,
+            'current': current,
+            'power_input': power_input,
+            'power_output': power_output,
+            'power_factor': power_factor,
+            'efficiency': efficiency,
+            't_max': t_max,
+            'p_max': p_max,
+        }
+
+    def make_CNS14400_csv_str(self):
+        ret_csv_str = ''
+        
+        header = ['Speed (rpm)', 'Torque (Nm)', 'Voltage (V)', 'Current (A)', 'Input Power (W)', 'Output Power (W)', 'Power Factor', 'Efficiency (%)']
+        data = self.result_CNS14400
+        
+        ret_csv_str += ','.join(header) + '\n'
+        
+        for i in range(len(data['speed'])):
+            ret_csv_str += f"{data['speed'][i]},{data['torque'][i]},{data['voltage'][i]},{data['current'][i]},{data['power_input'][i]},{data['power_output'][i]},{data['power_factor'][i]},{data['efficiency'][i]}\n"
+            
+        ret_csv_str  += f"Max Torque (Nm), {data['t_max']}\n"
+        ret_csv_str  += f"Max Power (W), {data['p_max']}\n"
+        
+        return ret_csv_str 
+        
+    
+    # # polt a combined figure that has 5 curves in one figure (current, torque, efficiency, input power, output power) vs speed
+    def plot_load_test_combined_figure(self, ax:plt.Axes=None, show=False):
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(12, 6))
+        
+        data = self.result_load_test
+        speed = data['speeds']
+        
+        # 電流 (主軸)
+        ax1 = ax
+        ax1.plot(speed, data['current'], 'r-', label='Current (A)')
+        ax1.set_ylabel('Current (A)', color='r')
+        ax1.tick_params(axis='y', colors='r')
+        ax1.yaxis.set_label_position('left')
+        ax1.yaxis.tick_left()
+
+        # 轉矩 (左側第二軸)
+        ax2 = ax1.twinx()
+        ax2.spines['left'].set_position(('outward', 40))
+        ax2.plot(speed, data['torques'], 'b-', label='Torque (Nm)')
+        ax2.set_ylabel('Torque (Nm)', color='b')
+        ax2.tick_params(axis='y', colors='b')
+        ax2.yaxis.set_label_position('left')
+        ax2.yaxis.tick_left()
+
+        # 效率 (左側第三軸)
+        ax3 = ax1.twinx()
+        ax3.spines['left'].set_position(('outward', 80))
+        ax3.plot(speed, data['efficiency'], 'g-', label='Efficiency (%)')
+        ax3.set_ylabel('Efficiency (%)', color='g')
+        ax3.tick_params(axis='y', colors='g')
+        ax3.yaxis.set_label_position('left')
+        ax3.yaxis.tick_left()
+        
+        # 輸入功率 (左側第四軸)
+        ax4 = ax1.twinx()
+        ax4.spines['left'].set_position(('outward', 120))
+        ax4.plot(speed, data['power_input'], 'c-', label='Input Power (W)')
+        ax4.plot(speed, data['power_output'], 'm-', label='Output Power (W)')
+        ax4.set_ylabel('Power (W)', color='c')
+        ax4.tick_params(axis='y', colors='c')
+        ax4.yaxis.set_label_position('left')
+        ax4.yaxis.tick_left()
+        
+        # 統一x軸標籤和標題
+        ax1.set_xlabel('Speed (rpm)')
+        ax1.set_title('Performance Curves vs Speed', fontsize=16)
+
+        # 合併圖例
+        lines1, labels1 = ax1.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels()
+        lines3, labels3 = ax3.get_legend_handles_labels()
+        lines4, labels4 = ax4.get_legend_handles_labels()
+        # lines5, labels5 = ax5.get_legend_handles_labels()
+        ax1.legend(lines1 + lines2 + lines3 + lines4, labels1 + labels2 + labels3 + labels4, loc='center left')   
+
+        # call draw
+        ax1.figure.tight_layout()
+        ax1.figure.canvas.draw()
+        
+        if show:
+            plt.tight_layout()
+            plt.show()
+
     
     def to_dict(self):
         return {
@@ -532,7 +834,9 @@ class Motor:
             'information_dict': self.information_dict,
             
             'test_results': {
-                'result_dc_resistance': self.result_dc_resistance,
+                # 'result_dc_resistance': self.result_dc_resistance,
+                'result_dc_resistance_hot': self.result_dc_resistance_hot,
+                'result_dc_resistance_cold': self.result_dc_resistance_cold,
                 'result_open_circuit': self.result_open_circuit,
                 'result_locked_rotor': self.result_locked_rotor,
                 'result_load_test': self.result_load_test,
@@ -541,7 +845,9 @@ class Motor:
             },
             
             'test_data_log': {
-                'data_dc_resistance': self.data_dc_resistance,
+                # 'data_dc_resistance': self.data_dc_resistance,
+                'data_dc_resistance_hot': self.data_dc_resistance_hot,
+                'data_dc_resistance_cold': self.data_dc_resistance_cold,
                 'data_open_circuit': self.data_open_circuit,
                 'data_locked_rotor': self.data_locked_rotor,
                 'data_load': self.data_load,
@@ -563,7 +869,9 @@ class Motor:
         # motor information
         self.information_dict = data['information_dict']
         
-        self.result_dc_resistance = data['test_results']['result_dc_resistance']
+        # self.result_dc_resistance = data['test_results']['result_dc_resistance']
+        self.result_dc_resistance_hot = data['test_results']['result_dc_resistance_hot']
+        self.result_dc_resistance_cold = data['test_results']['result_dc_resistance_cold']
         self.result_open_circuit = data['test_results']['result_open_circuit']
         self.result_locked_rotor = data['test_results']['result_locked_rotor']
         self.result_load_test = data['test_results']['result_load_test']
@@ -571,12 +879,14 @@ class Motor:
         self.result_frequency_drift = data['test_results']['result_frequency_drift']
         
         
-        self.data_dc_resistance = data['test_data_log']['data_dc_resistance']
+        # self.data_dc_resistance = data['test_data_log']['data_dc_resistance']
+        self.data_dc_resistance_hot = data['test_data_log']['data_dc_resistance_hot']
+        self.data_dc_resistance_cold = data['test_data_log']['data_dc_resistance_cold']
         self.data_open_circuit = data['test_data_log']['data_open_circuit']
         self.data_locked_rotor = data['test_data_log']['data_locked_rotor']
         self.data_load = data['test_data_log']['data_load']
         self.data_separate_excitation = data['test_data_log']['data_separate_excitation']
-        self.frequency_drift = data['test_data_log']['frequency_drift']
+        self.data_frequency_drift = data['test_data_log']['frequency_drift']
     
     def _raw_data_to_csv(self, data_log):
         raw_data = data_log['raw_data']
@@ -604,12 +914,15 @@ class Motor:
 
         # test raw data export list
         raw_data_export_list = [
-            ('dc_resistance', self.data_dc_resistance),
+            # ('dc_resistance', self.data_dc_resistance),
+            ('dc_resistance_hot', self.data_dc_resistance_hot),
+            ('dc_resistance_cold', self.data_dc_resistance_cold),
             ('open_circuit', self.data_open_circuit),
             ('locked_rotor', self.data_locked_rotor),
             ('load_test', self.data_load),
             ('separate_excitation', self.data_separate_excitation),
-            ('frequency_drift', self.frequency_drift),
+            ('frequency_drift', self.data_frequency_drift),
+            ('CNS14400', self.result_CNS14400),
         ]
 
         for test_name, data_log in raw_data_export_list:
@@ -629,7 +942,7 @@ class Motor:
             for key, value in self.information_dict.items():
                 writer.writerow([key, value])
         
-        
+    
 if __name__ == '__main__':
     import json
     motor = Motor()
@@ -673,12 +986,12 @@ if __name__ == '__main__':
     # %%
     # file_path = 'test_file/2025_0201_merged.motor.json'
     # file_path = 'test_file/QA123_20250203_151517.motor.json'
-    file_path ='test_file\QA123_20250203_170449.motor.json'
+    file_path ='test_file\QA123_20250206_hand.motor.json'
     with open(file_path, 'r', encoding='utf8') as f:
         data = json.load(f)
         motor.from_dict(data)
 
-    motor.save_to_csv_files('./rm_test_csv', 'ttttttt')
+    # motor.save_to_csv_files('./rm_test_csv', 'ttttttt')
 
     # print(json.dumps(motor.to_dict(), indent=4))
     # motor.analyze_dc_resistance()
@@ -691,6 +1004,10 @@ if __name__ == '__main__':
     # motor.analyze_separate_excitation()
     # motor.plot_separate_excitation(show=True)
     
+    # motor.analyze_load_test()
+    # motor.plot_load_test_combined_figure(show=True)
     
+    motor.analyze_frequency_drift()
+    motor.plot_frequency_drift(show=True)
     
     

@@ -227,7 +227,7 @@
            <bool>false</bool>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>3</number>
           </property>
           <widget class="QWidget" name="page_connect_test">
            <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -241,8 +241,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>318</width>
-                 <height>212</height>
+                 <width>1073</width>
+                 <height>755</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -1114,6 +1114,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="page_auto_test">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
              <widget class="QScrollArea" name="scrollArea_pg_auto">
@@ -1125,8 +1128,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>274</width>
-                 <height>328</height>
+                 <width>1073</width>
+                 <height>755</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -1148,7 +1151,7 @@
                    <item alignment="Qt::AlignTop">
                     <widget class="QLabel" name="label_auto_test_state">
                      <property name="text">
-                      <string>等待測試...</string>
+                      <string>請選擇右邊選單開始測試</string>
                      </property>
                     </widget>
                    </item>
@@ -1165,9 +1168,16 @@
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_3">
                    <item>
-                    <widget class="QPushButton" name="btn_dc_resistance_test">
+                    <widget class="QPushButton" name="btn_dc_resistance_cold_test">
                      <property name="text">
-                      <string>直流阻抗測試</string>
+                      <string>冷直流阻抗測試</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btn_dc_resistance_hot_test">
+                     <property name="text">
+                      <string>熱直流阻抗測試</string>
                      </property>
                     </widget>
                    </item>
@@ -1207,6 +1217,13 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="QPushButton" name="btn_CNS14400_test">
+                     <property name="text">
+                      <string>CNS14400</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <spacer name="verticalSpacer_2">
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
@@ -1239,6 +1256,15 @@
            <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
              <widget class="QScrollArea" name="scrollArea_pg_res">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="midLineWidth">
+               <number>0</number>
+              </property>
               <property name="widgetResizable">
                <bool>true</bool>
               </property>
@@ -1246,9 +1272,9 @@
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>0</y>
-                 <width>508</width>
-                 <height>1814</height>
+                 <y>-1430</y>
+                 <width>1056</width>
+                 <height>2661</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1267,12 +1293,50 @@
                       </sizepolicy>
                      </property>
                      <property name="text">
-                      <string>直流電阻</string>
+                      <string>直流冷電阻</string>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLineEdit" name="lineEdit_dc_resistance_result">
+                    <widget class="QLineEdit" name="lineEdit_dc_resistance_cold_result">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>80</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="label_71">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="text">
+                      <string>直流熱電阻</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLineEdit" name="lineEdit_dc_resistance_hot_result">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -1799,7 +1863,7 @@
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>300</height>
+                       <height>400</height>
                       </size>
                      </property>
                     </widget>
@@ -1850,7 +1914,7 @@
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>300</height>
+                       <height>400</height>
                       </size>
                      </property>
                     </widget>
@@ -1862,6 +1926,37 @@
                        <horstretch>1</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QGroupBox" name="groupBox_14">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="title">
+                   <string>混合</string>
+                  </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout_17">
+                   <item>
+                    <widget class="MplWidget" name="mpl_merge_polt">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                       <horstretch>3</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>600</height>
+                      </size>
                      </property>
                     </widget>
                    </item>
@@ -1888,6 +1983,9 @@
            </layout>
           </widget>
           <widget class="QWidget" name="page_manual_monitoring">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <item>
              <widget class="QScrollArea" name="scrollArea_pg_manual">
@@ -1899,8 +1997,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>810</width>
-                 <height>854</height>
+                 <width>1056</width>
+                 <height>870</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -2329,7 +2427,7 @@
                   <item>
                    <widget class="QFrame" name="frame_2">
                     <property name="enabled">
-                     <bool>true</bool>
+                     <bool>false</bool>
                     </property>
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -3144,6 +3242,9 @@
             <verstretch>1</verstretch>
            </sizepolicy>
           </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
          </widget>
         </widget>
        </item>
@@ -3158,7 +3259,7 @@
      <x>0</x>
      <y>0</y>
      <width>1241</width>
-     <height>30</height>
+     <height>31</height>
     </rect>
    </property>
   </widget>
@@ -3192,7 +3293,7 @@
   <tabstop>btn_Test_PowerSupply</tabstop>
   <tabstop>scrollArea_pg_connect</tabstop>
   <tabstop>scrollArea_pg_auto</tabstop>
-  <tabstop>btn_dc_resistance_test</tabstop>
+  <tabstop>btn_dc_resistance_cold_test</tabstop>
   <tabstop>btn_no_load_test</tabstop>
   <tabstop>btn_lock_rotor_test</tabstop>
   <tabstop>btn_separate_excitation_test</tabstop>
@@ -3200,7 +3301,7 @@
   <tabstop>btn_load_test</tabstop>
   <tabstop>btn_auto_test_stop</tabstop>
   <tabstop>scrollArea_pg_res</tabstop>
-  <tabstop>lineEdit_dc_resistance_result</tabstop>
+  <tabstop>lineEdit_dc_resistance_cold_result</tabstop>
   <tabstop>lineEdit_open_v</tabstop>
   <tabstop>lineEdit_open_i</tabstop>
   <tabstop>lineEdit_open_p</tabstop>

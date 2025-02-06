@@ -187,10 +187,10 @@ class TestRunner:
         print(f"[setup_ac_single_phase_and_check] system check done")
 
     # ok
-    def run_dc_resistance_test(self, motor:Motor):
+    # add hot and cold test
+    def run_dc_resistance_test(self, motor:Motor, is_hot_test=False):
         self.system_init(3) # 3 phase system 
-
-
+        
         # <Current> = 0.5, 1, 2, 5, 10, 20(A)
         cur_range = [0.5, 1, 2, 5, 10, 20]
         # find > 0.6 rated current in the list
@@ -203,14 +203,10 @@ class TestRunner:
 
         self.device_manager.power_supply.set_instrument_edit(1) # 同時調整
         self.device_manager.power_supply.set_source_mode(2) # 0 DC-INT # e 設定ASR6450 DC+INT 三相系統
-        # self.device_manager.power_supply.set_voltage(0) # g 設定ASR6450 交流電壓=0
         self.device_manager.power_supply.set_current_limit(motor.rated_current*1.2) # h 設定ASR6450 最大電流命令(滿載電流*120%)
-        # self.device_manager.power_supply.set_frequency(motor.frequency)# i 設定ASR6450 頻率輸出命令
         
         self.device_manager.power_supply.set_voltage_offset(0) # set all dc offset to 0
-
         self.device_manager.power_supply.set_output(1) # 打開輸出
-
 
         # j 設定ASR6450 直流電壓輸出命令	(單相馬達)	直流電壓 Vtest_dc=0.1V
         # k 若為三相馬達, 則分三次測試
@@ -227,7 +223,6 @@ class TestRunner:
             time.sleep(1)
             # read WT333 voltage
             data:dict = self.device_manager.power_meter.read_data()
-            #### todo: check voltage
             print(f"[run_dc_resistance_test] read from power meter, V1:{data.get('V1', None)}, V2:{data.get('V2', None)}, V3:{data.get('V3', None)}")
 
             # check voltage, chech if the voltage is correct, in +- 30% range
@@ -254,13 +249,7 @@ class TestRunner:
                 if abs(data.get('V3') - test_dc_voltage)/test_dc_voltage > 0.3:
                     print('[run_dc_resistance_test] Power Meter Voltage Read Error')
                     return False
-            # input(f'read finish {i}, press Enter to continue')
-        
         print(f"[run_dc_resistance_test] system check done")
-        
-        print('[run_dc_resistance_test] ”待測馬達請脫離扭矩測試系統”')
-        # input('Press Enter to continue:')
-        
 
         self.device_manager.plc_electric.set_motor_output_three()
 
@@ -295,34 +284,18 @@ class TestRunner:
                         data:dict = self.device_manager.power_meter.read_data()
                         raw_data.append({'power_meter': data})
                     break
-
                 v_test_dc += 0.1
-            # input(f'read finish {i}, press Enter to continue')
-        # return
-        
-        # s 計算直流電阻 = (2/3)*( Vdc/Idc)
-        # t 轉動轉子以讀取不同角度的電阻值
         print(f'[run_dc_resistance_test] Test Done')
 
-        # u 關閉測試電壓輸出Y27
-        self.device_manager.power_supply.set_output(0)
+        self.device_manager.power_supply.set_output(0) # u 關閉測試電壓輸出Y27
         self.device_manager.plc_electric.set_motor_output_off()
         
-        # v 存入資料 
-        motor.add_result_dc_resistance(raw_data)
-        
-        # w 結束測試 
+        motor.add_result_dc_resistance(raw_data, is_hot_test)
         return True
     # ok
     def run_open_circuit_test(self, motor:Motor):
-        # self.system_init(motor.power_phases)
         self.system_init(3) # 3 phase system 
-
         self.setup_ac_balance_and_check(motor)
-        
-        print('[run_open_circuit_test] ”待測馬達請脫離扭矩測試系統”')
-        # input('Press Enter to continue:')   
-
 
         self.device_manager.power_supply.set_voltage(0)
         self.device_manager.plc_electric.set_motor_output_three()
@@ -330,12 +303,9 @@ class TestRunner:
         for i in range(30, 100+1, 5):
             self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732*i/100)
             time.sleep(0.2)
-
         print('[run_open_circuit_test] 啟動完成')
-        
             
         raw_data = []
-                
         # p 連續  讀取 WT333  [電壓Vnl, 電流Inl, 功率Pnl, 功率因數PFnl ]
         for i in range(10):
             time.sleep(1)
@@ -351,11 +321,9 @@ class TestRunner:
         # q 關閉測試電壓輸出Y27
         self.device_manager.power_supply.set_output(0)
         self.device_manager.plc_electric.set_motor_output_off()
-        
         # r 存入資料 
         motor.add_result_open_circuit(raw_data)
         # s 結束測試 
-        
         print('[run_open_circuit_test] Test Done')
         
         return True
@@ -424,11 +392,6 @@ class TestRunner:
             print(f"[run_load_test] setting current range to {current_range}")  
             self.device_manager.power_meter.set_current_range(current_range)
 
-        # 
-
-        
-        print('[run_open_circuit_test] ”待測馬達請連結至負載測試系統”')
-
         self.device_manager.power_supply.set_voltage(0)
         if run_with_single_phase:
             self.device_manager.plc_electric.set_motor_output_single()
@@ -446,11 +409,9 @@ class TestRunner:
                     time.sleep(0.5)
                 else:
                     time.sleep(0.2)
-
+        time.sleep(1)
         print('[run_open_circuit_test] 啟動完成')
 
-        # input('啟動完成, Press Enter to continue:')
-        
         # q. 逐漸增加制動控制的輸出電流(DA output, 加載)
         # r. 連續  讀取 WT333  [電壓V 電流I, 功率P, 功率因數PF ]
         # s. 重複(q.)直到馬達鎖住 ( 轉速=0)
@@ -476,9 +437,6 @@ class TestRunner:
                 print('[run_load_test] Retry with Single Phase Mode...')
                 return self.run_load_test(motor, run_with_single_phase=True)
 
-            # if mechanical['speed'] <= motor.speed*0.7:
-            #     break
-
             if power_meter.get('I1') >= 13:
                 print('[run_load_test] early stop, over current,{power_meter.get("I1")}')
                 break
@@ -489,19 +447,16 @@ class TestRunner:
         self.device_manager.power_supply.set_output(0)
         self.device_manager.plc_electric.set_motor_output_off()
         self.device_manager.plc_mechanical.set_break(0)
-        # u. 存入資料 
+        
         motor.add_result_load_test(raw_data, run_with_single_phase)
-        # v. 結束測試 
         print('[run_load_test] Test Done')
         return True
-
     # 鐵損分離試驗
     def run_separate_excitation_test(self, motor:Motor):
         self.system_init(3) # 3 phase system
         self.setup_ac_balance_and_check(motor)
 
         print('[run_separate_excitation_test] ”待測馬達請脫離扭矩測試系統”')
-        # input('Press Enter to continue:')
         
         # o. 設定ASR6450 輸出電壓=20%額定電壓(減少啟動電流衝擊) 設定外部輸出開關 (啟動測試電壓輸出Y24 OR Y25) , 逐漸調整輸出電壓到額定電壓的80%(每0.5 Sec增加 5%)等待3 Sec 讓系統穩定後, 開是測試:
         self.device_manager.plc_electric.set_motor_output_three()
@@ -511,8 +466,6 @@ class TestRunner:
             self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * i/100)
             time.sleep(0.2)
         print('[run_open_circuit_test] 啟動完成')
-
-        # return    
     
         # p. 連續  讀取 WT333  [電壓Vt5, 電流It5, 功率Pt5, 功率因數PFt5]
         # q. 逐漸調整輸出電壓到額定電壓的120%  [80%-120%]
@@ -526,16 +479,13 @@ class TestRunner:
             i_str = f"I1:{data.get('I1')}, I2:{data.get('I2')}, I3:{data.get('I3')}"
             p_str = f"P1:{data.get('P1')}, P2:{data.get('P2')}, P3:{data.get('P3')}"
             print(f"[run_separate_excitation_test] read from power meter,{p}%, {v_str}, {i_str}, {p_str}")
-            
 
         # r. 關閉測試電壓輸出Y27
         self.device_manager.plc_electric.set_motor_output_off()
         time.sleep(1)
         self.device_manager.power_supply.set_output(0)
         
-        # s. 存入資料 
         motor.add_result_separate_excitation(raw_data)
-        # t. 結束測試 
         print('[run_separate_excitation_test] Test Done')
         return True
     # 頻率飄移 95 100 105, 
@@ -578,8 +528,6 @@ class TestRunner:
                 break
         print(f"[run_frequency_drift] finetune done")
 
-        # input('finetune done , Press Enter to continue:')
-
         # save data
         raw_data = []
         for f in range(95, 105+1, 1):
@@ -603,6 +551,79 @@ class TestRunner:
         # t. 結束測試 
         print('[frequency_drift_test] Test Done')
         return True
+    
+    def run_CNS14400_test(self, motor:Motor, high_load_mode=False):
+        # cold test
+        print('[run_CNS14400_test] Cold Test Start...')
+        self.run_dc_resistance_test(motor, is_hot_test=False)
+        print('[run_CNS14400_test] Cold Test Done')
+        
+        # time 
+        load_interval = 5*60
+        if high_load_mode:
+            load_arr = [25, 50, 75, 100, 125, 150]
+        else:
+            load_arr = [25, 50, 75, 100, 115, 115]    
+            
+        # tune load to rated output power 
+        
+        raw_data = []
+        
+        for load_percent in load_arr:
+            print(f'[run_CNS14400_test] Load Test {load_percent}% Start...')
+            start_time = time.time()    
+            break_da = 100
+            while True:
+                # read torque and speed
+                mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
+                now_power = mechanical_data['speed'] * mechanical_data['torque'] / 9.549
+                # 剩餘時間
+                print(f"[run_CNS14400_test] Time Left:{load_interval - (time.time() - start_time)}, current power:{now_power}, target power:{motor.horsepower*746*load_percent / 100}")
+                 
+                if now_power > motor.horsepower*746*load_percent / 100:
+                    break_da = break_da - 5
+                    break_da = max(0, break_da)
+                else:
+                    break_da = break_da + 5
+                    break_da = min(4000, break_da)
+                self.device_manager.plc_mechanical.set_break(break_da)    
+                    
+                if time.time() - start_time > load_interval:    
+                    # print start log data 
+                    print(f"[run_CNS14400_test] start read {load_percent}% data")
+                    # record data
+                    for i in range(5):
+                        mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
+                        power_meter = self.device_manager.power_meter.read_data()
+                        print(f"[run_CNS14400_test] read from power meter, V1:{power_meter.get('V1')}, I1:{power_meter.get('I1')}, P1:{power_meter.get('P1')}, F1:{power_meter.get('FU1')}")
+                        raw_data.append({'power_meter': power_meter, 'mechanical': mechanical_data})
+                        time.sleep(1)
+                    break
+            print(f'[run_CNS14400_test] Load Test {load_percent}% Done')
+        
+        
+        
+        # hot test
+        print('[run_CNS14400_test] Hot Test Start...')
+        self.run_dc_resistance_test(motor, is_hot_test=True)
+        print('[run_CNS14400_test] Hot Test Done')
+        
+        
+            
+        # save data
+        motor.add_result_CNS14400(raw_data, high_load_mode)
+        print('[run_CNS14400_test] Test Done')
+        
+        
+        
+        
+        
+                
+                
+                
+                            
+        
+        
         
 if __name__ == '__main__':
     
