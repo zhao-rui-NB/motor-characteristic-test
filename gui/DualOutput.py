@@ -1,30 +1,58 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QTextEdit, QVBoxLayout, QWidget, QPushButton
+from PyQt6.QtCore import QThread, pyqtSignal
+# Qobject
+from PyQt6.QtCore import QObject
 
 import io
 
 
+# Qtimer every 0.5 second update the textedit form log.txt
+# class LogUpdater_Qthread(QThread):
+#     def __init__(self, text_edit:QTextEdit):
+#         super().__init__()
+#         self.text_edit = text_edit
+
+#     def run(self):
+
+
+class log_updater(QObject):
+    update_log_signal = pyqtSignal(str)
+    def __init__(self):
+        super().__init__()
+    
+    def update_log(self, message):
+        self.update_log_signal.emit(message)
+        
+
 class DualOutput(io.IOBase):
-    def __init__(self, original_stdout: io.TextIOBase, text_edit: QTextEdit):
+    def __init__(self, original_stdout: io.TextIOBase):
         self.original_stdout = original_stdout
-        self.text_edit = text_edit
+        # self.text_edit = text_edit
+        self.log_updater = log_updater()
 
     def write(self, message):
         # Print to the original stdout (command line)
         self.original_stdout.write(message)
-        # Also append to QTextEdit in the PyQt window
+
+        self.log_updater.update_log(message)
+
+        # Emit signal to update the text edit
+        # self.update_log_signal.emit(message)
+
+        # with open("log.txt", "a", encoding='utf-8') as f:
+        #     f.write(message)
+
+
+        # vertical_scrollbar = self.text_edit.verticalScrollBar()
+        # scrollbar_pos = vertical_scrollbar.value()
+        # is_at_bottom = scrollbar_pos == vertical_scrollbar.maximum()
         
-        #save now coursor position
+        # self.text_edit.setText(self.text_edit.toPlainText() + message)
         
-        vertical_scrollbar = self.text_edit.verticalScrollBar()
-        scrollbar_pos = vertical_scrollbar.value()
-        is_at_bottom = scrollbar_pos == vertical_scrollbar.maximum()
-        
-        self.text_edit.setText(self.text_edit.toPlainText() + message)
-        
-        if is_at_bottom:
-            vertical_scrollbar.setValue(vertical_scrollbar.maximum())
-        else:
-            vertical_scrollbar.setValue(scrollbar_pos)
+        # if is_at_bottom:
+        #     vertical_scrollbar.setValue(vertical_scrollbar.maximum())
+        # else:
+        #     vertical_scrollbar.setValue(scrollbar_pos)
             
     def flush(self):
         # Ensure flush functionality for compatibility with print

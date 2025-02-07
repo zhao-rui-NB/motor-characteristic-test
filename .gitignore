@@ -1,3 +1,5 @@
+build/*
+dist/*
 *.json
 !test_file/**
 ignore

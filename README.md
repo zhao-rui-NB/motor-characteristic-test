@@ -17,6 +17,11 @@ python main.py
 ```
 ```
 
+## 打包
+```
+pyinstaller --onefile main.py
+```
+
 ### 測試工具
 模擬多 modbus数码管显示屏
 ```

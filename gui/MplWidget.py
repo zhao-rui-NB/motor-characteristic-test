@@ -22,7 +22,7 @@ class  MplWidget(QFrame):
         
         self.canvas.figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
         self.ax = self.canvas.figure.add_subplot(111)
-        
+
     def get_axes(self):
         return self.ax
     

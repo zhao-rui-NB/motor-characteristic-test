@@ -188,7 +188,7 @@ class TestRunner:
 
     # ok
     # add hot and cold test
-    def run_dc_resistance_test(self, motor:Motor, is_hot_test=False):
+    def run_dc_resistance_test(self, motor:Motor, dont_overwrite_dc_resistance=False):
         self.system_init(3) # 3 phase system 
         
         # <Current> = 0.5, 1, 2, 5, 10, 20(A)
@@ -262,10 +262,10 @@ class TestRunner:
             self.device_manager.power_supply.set_instrument_edit(0) # 0 Each
             self.device_manager.power_supply.set_instrument_select(i)
             time.sleep(2)
-            v_test_dc = 1                        
+            # v_test_dc = 1  # save in motor                      
             while True:
-                self.device_manager.power_supply.set_voltage_offset(v_test_dc)
-                time.sleep(0.1)
+                self.device_manager.power_supply.set_voltage_offset(motor.v_test_dc)
+                time.sleep(0.35)
                 data:dict = self.device_manager.power_meter.read_data()
                 v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
                 i_str = f"I1:{data.get('I1')}, I2:{data.get('I2')}, I3:{data.get('I3')}"
@@ -279,19 +279,28 @@ class TestRunner:
                     now_current = data.get('I3')
                 
                 if now_current >= motor.rated_current/2:
+                    print(f"[run_dc_resistance_test] start read data")
                     for _ in range(5):
-                        time.sleep(1)
+                        # time.sleep(1)
+                        time.sleep(0.4)
                         data:dict = self.device_manager.power_meter.read_data()
                         raw_data.append({'power_meter': data})
+                        v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
+                        i_str = f"I1:{data.get('I1')}, I2:{data.get('I2')}, I3:{data.get('I3')}"
+                        print(f"[run_dc_resistance_test] read from power meter, {v_str}, {i_str}")  
                     break
-                v_test_dc += 0.1
+                motor.v_test_dc += 0.5
         print(f'[run_dc_resistance_test] Test Done')
 
         self.device_manager.power_supply.set_output(0) # u 關閉測試電壓輸出Y27
         self.device_manager.plc_electric.set_motor_output_off()
         
-        motor.add_result_dc_resistance(raw_data, is_hot_test)
-        return True
+        if not dont_overwrite_dc_resistance:
+            motor.add_result_dc_resistance(raw_data)
+            return True
+        else:
+            return raw_data
+
     # ok
     def run_open_circuit_test(self, motor:Motor):
         self.system_init(3) # 3 phase system 
@@ -334,7 +343,7 @@ class TestRunner:
         self.device_manager.power_meter.set_voltage_range(60)
         self.device_manager.plc_mechanical.set_break(2000)
         
-        print('[run_lock_rotor_test] ”待測馬達請安裝至扭矩測試系統”')
+        # print('[run_lock_rotor_test] ”待測馬達請安裝至扭矩測試系統”')
         # input('Press Enter to continue:')
         
         self.device_manager.plc_electric.set_motor_output_three()
@@ -349,11 +358,11 @@ class TestRunner:
             data:dict = self.device_manager.power_meter.read_data()
             v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
             i_str = f"I1:{data.get('I1')}, I2:{data.get('I2')}, I3:{data.get('I3')}"
-            print(f"[run_dc_resistance_test] read from power meter, {v_str}, {i_str}")
+            print(f"[run_lock_rotor_test] read from power meter, {v_str}, {i_str}")
             
             now_current = data.get('I1')
             if now_current >= motor.rated_current or data.get('V1') > motor.rated_voltage*0.5:
-                print(f"[run_dc_resistance_test] start read data")
+                print(f"[run_lock_rotor_test] start read data")
                 for _ in range(5):
                     data:dict = self.device_manager.power_meter.read_data()
                     raw_data.append({'power_meter': data})
@@ -492,7 +501,7 @@ class TestRunner:
     def run_frequency_drift_test(self, motor:Motor):
         self.system_init(3) # 3 phase system    
         self.setup_ac_balance_and_check(motor)
-        print('[run_separate_excitation_test] ”待測馬達請脫離扭矩測試系統”')
+        # print('[run_separate_excitation_test] ”待測馬達請脫離扭矩測試系統”')
         # input('Press Enter to continue:')
         
         self.device_manager.plc_electric.set_motor_output_three()
@@ -532,7 +541,7 @@ class TestRunner:
         raw_data = []
         for f in range(95, 105+1, 1):
             self.device_manager.power_supply.set_frequency(motor.frequency*f/100)
-            time.sleep(2)
+            time.sleep(5)
             # save 10 data
             # for i in range(10):
             power_meter = self.device_manager.power_meter.read_data()
@@ -552,25 +561,64 @@ class TestRunner:
         print('[frequency_drift_test] Test Done')
         return True
     
-    def run_CNS14400_test(self, motor:Motor, high_load_mode=False):
+    def run_CNS14400_test(self, motor:Motor, run_with_single_phase=False):
+        def start_motor():
+            # start motor
+            if run_with_single_phase:
+                self.system_init(1)
+                self.setup_ac_single_phase_and_check(motor)
+
+            else:
+                self.system_init(3) # 3 phase system
+                self.setup_ac_balance_and_check(motor)
+
+                cur_range = [0.5, 1, 2, 5, 10, 20]
+                # find > 0.6 rated current in the list
+                current_range = 20 
+                for i in range(len(cur_range)):
+                    if cur_range[i] > motor.rated_current*6:
+                        current_range = cur_range[i]
+                        break
+                print(f"[run_load_test] setting current range to {current_range}")  
+                self.device_manager.power_meter.set_current_range(current_range)
+
+            self.device_manager.power_supply.set_voltage(0)
+            if run_with_single_phase:
+                self.device_manager.plc_electric.set_motor_output_single()
+            else:
+                self.device_manager.plc_electric.set_motor_output_three()
+
+            # set voltage 30% - 100%
+            for i in range(30, 100+1, 5):
+                if run_with_single_phase:
+                    self.device_manager.power_supply.set_voltage(motor.rated_voltage*i/100)
+                    time.sleep(1)
+                else:
+                    self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732*i/100)
+                    if motor.is_single_phase():
+                        time.sleep(0.5)
+                    else:
+                        time.sleep(0.2)
+            time.sleep(1)
+            print('[run_CNS14400_test] 啟動完成')
+        
+        
+        raw_data_dict = {} # key: load percent, value: data list
+
         # cold test
         print('[run_CNS14400_test] Cold Test Start...')
-        self.run_dc_resistance_test(motor, is_hot_test=False)
+        dc_raw_data = self.run_dc_resistance_test(motor, dont_overwrite_dc_resistance = True)
+        raw_data_dict['dc_resistance_cold'] = dc_raw_data
         print('[run_CNS14400_test] Cold Test Done')
         
         # time 
-        load_interval = 5*60
-        if high_load_mode:
-            load_arr = [25, 50, 75, 100, 125, 150]
-        else:
-            load_arr = [25, 50, 75, 100, 115, 115]    
-            
-        # tune load to rated output power 
-        
-        raw_data = []
+        # load_interval = 5*60
+        load_interval = 60
+        load_arr = [25, 50, 75, 100, 115, 125, 150]
         
         for load_percent in load_arr:
             print(f'[run_CNS14400_test] Load Test {load_percent}% Start...')
+            start_motor()
             start_time = time.time()    
             break_da = 100
             while True:
@@ -578,49 +626,72 @@ class TestRunner:
                 mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
                 now_power = mechanical_data['speed'] * mechanical_data['torque'] / 9.549
                 # 剩餘時間
-                print(f"[run_CNS14400_test] Time Left:{load_interval - (time.time() - start_time)}, current power:{now_power}, target power:{motor.horsepower*746*load_percent / 100}")
+                print(f"[run_CNS14400_test] Time Left:{load_interval - (time.time() - start_time)}, DA:{break_da},current power:{now_power}, target power:{motor.horsepower*746*load_percent / 100}")
                  
-                if now_power > motor.horsepower*746*load_percent / 100:
-                    break_da = break_da - 5
-                    break_da = max(0, break_da)
-                else:
-                    break_da = break_da + 5
-                    break_da = min(4000, break_da)
-                self.device_manager.plc_mechanical.set_break(break_da)    
+                # PI control
+                p = 0.3
+
+                error = motor.horsepower*746*load_percent / 100 - now_power
+                break_da = break_da + min(p*error, 20)
+
+                # in range 0-4000 int 
+                break_da = max(0, break_da)
+                break_da = min(4000, break_da)
+                break_da = int(break_da)
+                self.device_manager.plc_mechanical.set_break(break_da)
+
+                time.sleep(1)    
                     
                 if time.time() - start_time > load_interval:    
                     # print start log data 
                     print(f"[run_CNS14400_test] start read {load_percent}% data")
                     # record data
+                    raw_data = []
                     for i in range(5):
                         mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
                         power_meter = self.device_manager.power_meter.read_data()
+                        
+                        # check single phase motor is over current
+                        if motor.is_single_phase() and not run_with_single_phase and power_meter.get('I1') > 5:
+                            self.device_manager.plc_electric.set_motor_output_off()
+                            time.sleep(1)
+                            self.device_manager.power_supply.set_output(0)
+                            print('[run_load_test] ERROR, Single Phase Motor Over Current')
+                            print('[run_load_test] Retry with Single Phase Mode...')
+                            return self.run_load_test(motor, run_with_single_phase=True)
+                        
+                        
                         print(f"[run_CNS14400_test] read from power meter, V1:{power_meter.get('V1')}, I1:{power_meter.get('I1')}, P1:{power_meter.get('P1')}, F1:{power_meter.get('FU1')}")
                         raw_data.append({'power_meter': power_meter, 'mechanical': mechanical_data})
                         time.sleep(1)
+                    raw_data_dict[f'load_{load_percent}'] = raw_data
+                    # turn off motor
+                    self.device_manager.plc_electric.set_motor_output_off()
+                    self.device_manager.plc_mechanical.set_break(100) 
                     break
-            print(f'[run_CNS14400_test] Load Test {load_percent}% Done')
-        
-        
-        
-        # hot test
-        print('[run_CNS14400_test] Hot Test Start...')
-        self.run_dc_resistance_test(motor, is_hot_test=True)
-        print('[run_CNS14400_test] Hot Test Done')
-        
-        
             
+            # check speed 0 
+            while True:
+                mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
+                if mechanical_data['speed'] < 1:
+                    break
+                time.sleep(1)
+
+            print('[run_CNS14400_test] Hot Test Start...')
+            dc_raw_data = self.run_dc_resistance_test(motor, dont_overwrite_dc_resistance = True)
+            raw_data_dict[f'dc_resistance_{load_percent}'] = dc_raw_data
+            print('[run_CNS14400_test] Hot Test Done')
+
+
+            print(f'[run_CNS14400_test] Load Test {load_percent}% Done')
+
         # save data
-        motor.add_result_CNS14400(raw_data, high_load_mode)
+        motor.add_result_CNS14400(raw_data_dict)
+
         print('[run_CNS14400_test] Test Done')
+        return True
         
         
-        
-        
-        
-                
-                
-                
                             
         
         

@@ -14,10 +14,11 @@ from engine.TestRunner import TestRunner
 
 
 from gui.ui.main_ui import Ui_MainWindow
-from gui.qthread_tasks import Qthread_test_delay, Qthread_run_open_circuit_test, Qthread_run_lock_rotor_test, Qthread_run_load_test, Qthread_run_separate_excitation_test, Qthread_run_frequency_drift_test, Qthread_run_dc_resistance_cold_test, Qthread_run_dc_resistance_hot_test, Qthread_run_CNS14400_test
+from gui.qthread_tasks import Qthread_test_delay, Qthread_run_open_circuit_test, Qthread_run_lock_rotor_test, Qthread_run_load_test, Qthread_run_separate_excitation_test, Qthread_run_frequency_drift_test, Qthread_run_dc_resistance_test, Qthread_run_CNS14400_test
 from gui.DualOutput import DualOutput
 
 import sys
+import os
 
 
 
@@ -30,8 +31,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.showMaximized()
 
         # redirect the print to textEdit_system_log
-        sys.stdout = DualOutput(sys.stdout, self.textEdit_system_log)    
-        
+        dual_output = DualOutput(sys.stdout)
+        # dual_output.update_log_signal.connect(self.on_update_log_signal)        
+        sys.stdout = dual_output
+        dual_output.log_updater.update_log_signal.connect(self.on_update_log_signal)
         
         self.task_running_mode(False)
         
@@ -65,10 +68,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.on_connect()
         
         self.resize( self.width(), self.height() )
-        self.mpl_load.clear_plot()
         #
-        self.mpl_load.plot([1,2,3,4,5], [1,2,3,4,5])
-        self.mpl_load.canvas.draw()
 
 
     def signal_connect(self):
@@ -86,7 +86,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_save.clicked.connect(self.on_save_project)
         self.btn_open.clicked.connect(self.on_open_project)
         self.btn_new.clicked.connect(self.on_new_project)
-        self.btn_save_csv.clicked.connect(self.on_btn_save_csv)
+        # self.btn_save_csv.clicked.connect(self.on_btn_save_csv)
         
         # motor parameter
         # set all line edit input check 
@@ -144,16 +144,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
 
         # auto test manual btn
-        # self.btn_dc_resistance_test.clicked.connect(self.on_dc_resistance_clicked)
-        self.btn_dc_resistance_cold_test.clicked.connect(self.on_dc_resistance_cold_clicked)
-        self.btn_dc_resistance_hot_test.clicked.connect(self.on_dc_resistance_hot_clicked)
+        self.btn_dc_resistance_test.clicked.connect(self.on_dc_resistance_clicked)
             
         self.btn_no_load_test.clicked.connect(self.on_no_load_test_clicked)
         self.btn_lock_rotor_test.clicked.connect(self.on_lock_rotor_test_clicked)
         self.btn_load_test.clicked.connect(self.on_load_test_clicked)
         self.btn_separate_excitation_test.clicked.connect(self.on_separate_excitation_test_clicked)
         self.btn_frequency_drift_test.clicked.connect(self.on_frequency_drift_test_clicked)
+        self.btn_CNS_test.clicked.connect(self.on_btn_CNS14400_test_clicked)
+        # self.btn_CNS_test.clicked.connect(lambda: print('HHHHHWWWW'))   
+           
         self.btn_auto_test_stop.clicked.connect(self.on_auto_task_stop_clicked)
+
         
         # test connect page btn
         self.btn_Test_PlcElectrical.clicked.connect(self.on_test_PlcElectrical)
@@ -227,6 +229,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         for i, button in enumerate(button_list):
             button.setChecked(i == index)
     
+    # log 
+    def on_update_log_signal(self, message):
+        vertical_scrollbar = self.textEdit_system_log.verticalScrollBar()
+        scrollbar_pos = vertical_scrollbar.value()
+        is_at_bottom = scrollbar_pos == vertical_scrollbar.maximum()
+        
+        self.textEdit_system_log.setText(self.textEdit_system_log.toPlainText() + message)
+        
+        if is_at_bottom:
+            vertical_scrollbar.setValue(vertical_scrollbar.maximum())
+        else:
+            vertical_scrollbar.setValue(scrollbar_pos)
+
     # resize event , resize the figure
     
     ##############################################################################
@@ -262,6 +277,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             
             self.page_manual_monitoring.setEnabled(True)
             self.page_auto_test.setEnabled(True)
+            self.frame_8.setEnabled(True)
 
     def on_disconnect(self):
         self.data_sender.stop_plc_electric_data_sender()
@@ -274,6 +290,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         QMessageBox.information(self, 'Success', '斷線成功')
         self.page_manual_monitoring.setEnabled(False)
         self.page_auto_test.setEnabled(False)
+        self.frame_2.setEnabled(False)
         
         
     def on_test_PlcElectrical(self):
@@ -384,16 +401,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def on_save_project(self):
         motor_json = self.motor.to_dict()
         timestamp = self.motor.make_time_stamp()
+
+
+        phase = 'three_phase' if self.motor.power_phases == 3 else 'single_phase'
+        model = self.motor.information_dict.get('型式', '無型式')
+        default_dir = f'D:/{phase}/{model}/{timestamp}'
+        os.makedirs(default_dir, exist_ok=True)
+
         # a save dialog to save the file
         # get model
         model = self.motor.information_dict.get('型式', 'model')
-        file_name, _ = QFileDialog.getSaveFileName(self, 'Save Project', f'{model}_{timestamp}.motor.json', 'MOTOR JSON File (*.motor.json)')
+        file_name, _ = QFileDialog.getSaveFileName(self, 'Save Project', f'{default_dir}/{model}_{timestamp}.motor.json', 'MOTOR JSON File (*.motor.json)')
         if file_name:
             with open(file_name, 'w', encoding='UTF8') as f:
-                # printdict
-                print(motor_json)
                 json.dump(motor_json, f, indent=4, ensure_ascii=False)
+            
+            # save csv 
+            dir_path = os.path.dirname(file_name)
+            self.motor.save_to_csv_files(dir_path)
             self.update_file_save_status(True)
+
+
     
     def on_open_project(self):
         if not self.saved_flag:
@@ -433,15 +461,21 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def on_btn_save_csv(self):
         timestamp = self.motor.make_time_stamp()
+        
         # a save dialog to save the file
         # get model
+
+        phase = 'three_phase' if self.motor.power_phases == 3 else 'single_phase'
         model = self.motor.information_dict.get('型式', 'model')
-        default_dir = f'{model}_{timestamp}'
+        default_dir = f'D:/{phase}/{model}/{timestamp}'
+
+        os.makedirs(default_dir, exist_ok=True)  
 
         # ask user choose the directory
         dir_name = QFileDialog.getExistingDirectory(self, 'Save CSV', default_dir)
         if dir_name:
-            self.motor.save_to_csv_files(dir_name, default_dir)
+            os.makedirs(default_dir, exist_ok=True)
+            self.motor.save_to_csv_files(dir_name)
             QMessageBox.information(self, 'Success', 'CSV檔案儲存成功')
 
     
@@ -450,44 +484,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     ##############################################################################
     def task_running_mode(self, running):
         # disable all the buttons
-        # self.btn_dc_resistance_test.setEnabled(not running)
-        self.btn_dc_resistance_cold_test.setEnabled(not running)
-        self.btn_dc_resistance_hot_test.setEnabled(not running)
+        self.btn_dc_resistance_test.setEnabled(not running)
         self.btn_no_load_test.setEnabled(not running)
         self.btn_lock_rotor_test.setEnabled(not running)
         self.btn_separate_excitation_test.setEnabled(not running)
         self.btn_frequency_drift_test.setEnabled(not running)
         self.btn_load_test.setEnabled(not running)
+        self.btn_CNS_test.setEnabled(not running)
 
         self.btn_auto_test_stop.setEnabled(running)
     
-    def on_dc_resistance_cold_clicked(self):
+    def on_dc_resistance_clicked(self):
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
             return
         # a msg box to confirm the test and mechanical connection
-        reply = QMessageBox.question(self, '自動測試', '直流阻抗測試', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        reply = QMessageBox.question(self, '自動測試', '直流電阻測試', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
         if reply == QMessageBox.StandardButton.Ok:
             # disable all the buttons
             self.task_running_mode(True)
-            self.auto_test_qthread = Qthread_run_dc_resistance_cold_test(self.test_runner, self.motor)
+            self.auto_test_qthread = Qthread_run_dc_resistance_test(self.test_runner, self.motor)
             # self.auto_test_qthread = Qthread_test_delay(self.test_runner, self.motor, 8) # for test
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
-    def on_dc_resistance_hot_clicked(self):
-        if self.auto_test_qthread and self.auto_test_qthread.isRunning():
-            QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
-            return
-        # a msg box to confirm the test and mechanical connection
-        reply = QMessageBox.question(self, '自動測試', '直流阻抗測試', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
-        
-        if reply == QMessageBox.StandardButton.Ok:
-            # disable all the buttons
-            self.task_running_mode(True)
-            self.auto_test_qthread = Qthread_run_dc_resistance_hot_test(self.test_runner, self.motor)
-            self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
-            self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('直流電阻測試中...')
+
     def on_no_load_test_clicked(self):
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
@@ -501,6 +523,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread = Qthread_run_open_circuit_test(self.test_runner, self.motor)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('無載測試中...')
     def on_lock_rotor_test_clicked(self):
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
@@ -514,6 +537,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread = Qthread_run_lock_rotor_test(self.test_runner, self.motor)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('堵轉測試中...')
     def on_load_test_clicked(self): 
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
@@ -527,6 +551,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread = Qthread_run_load_test(self.test_runner, self.motor)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('負載測試中...')
     def on_separate_excitation_test_clicked(self):
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
@@ -540,12 +565,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread = Qthread_run_separate_excitation_test(self.test_runner, self.motor)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('鐵損分離測試中...')
     def on_frequency_drift_test_clicked(self):
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
             return
         # a msg box to confirm the test and mechanical connection
-        reply = QMessageBox.question(self, '自動測試', '頻率漂移測試\n待測馬達請<脫離>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        reply = QMessageBox.question(self, '自動測試', '頻率變動測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         
         if reply == QMessageBox.StandardButton.Ok:
             # disable all the buttons
@@ -553,7 +579,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread = Qthread_run_frequency_drift_test(self.test_runner, self.motor)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('頻率變動測試中...')
     def on_btn_CNS14400_test_clicked(self):
+        print('on_btn_CNS14400_test_clicked')
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
             return
@@ -566,6 +594,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread = Qthread_run_CNS14400_test(self.test_runner, self.motor)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('CNS14400測試中...')
     
     
     
@@ -573,6 +602,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             self.auto_test_qthread.terminate()
             self.task_running_mode(False)
+            self.label_auto_test_state.setText('測試已停止')
         
     def on_auto_test_task_done(self, succ):
         self.task_running_mode(False)
@@ -582,6 +612,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.critical(self, 'Error', '測試失敗')
             
         self.update_test_result_page()
+        self.label_auto_test_state.setText('請選擇右邊選單開始測試')
         
         
     ##############################################################################
@@ -596,15 +627,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.motor.analyze_separate_excitation()
         self.motor.analyze_frequency_drift()
         
-        self.btn_CNS14400_test
-        
-        
         # update the test result page to ui
         
         # dc resistance
-        # self.lineEdit_dc_resistance_result.setText(str(self.motor.result_dc_resistance) if self.motor.result_dc_resistance else '')
-        self.lineEdit_dc_resistance_cold_result.setText(str(self.motor.result_dc_resistance_cold) if self.motor.result_dc_resistance_cold else '')
-        self.lineEdit_dc_resistance_hot_result.setText(str(self.motor.result_dc_resistance_hot) if self.motor.result_dc_resistance_hot else '')
+        self.lineEdit_dc_resistance_result.setText(str(self.motor.result_dc_resistance) if self.motor.result_dc_resistance else '')
         
         open_v = str(self.motor.result_open_circuit.get('voltage')) if self.motor.result_open_circuit else ''
         open_i = str(self.motor.result_open_circuit.get('current')) if self.motor.result_open_circuit else ''

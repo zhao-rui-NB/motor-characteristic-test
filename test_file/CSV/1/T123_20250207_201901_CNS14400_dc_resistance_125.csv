@@ -1,0 +1,16 @@
+V1,I1,P1,S1,Q1,LAMBDA1,PHI1,FU1,FI1,V2,I2,P2,S2,Q2,LAMBDA2,PHI2,FU2,FI2,V3,I3,P3,S3,Q3,LAMBDA3,PHI3,FU3,FI3,V_SIGMA,I_SIGMA,P_SIGMA,S_SIGMA,Q_SIGMA,LAMBDA_SIGMA,PHI_SIGMA,FU_SIGMA,FI_SIGMA
+16.96,inf,inf,inf,inf,inf,inf,inf,inf,16.97,inf,0.0,0.0,0.0,inf,inf,nan,nan,0.0,1.386,-0.02,0.0,0.0,inf,inf,nan,nan,8.48,inf,inf,inf,inf,inf,inf,nan,nan
+16.96,inf,inf,inf,inf,inf,inf,inf,inf,16.97,inf,0.0,0.0,0.0,inf,inf,nan,nan,0.0,1.3872,-0.02,0.0,0.0,inf,inf,nan,nan,8.48,inf,inf,inf,inf,inf,inf,nan,nan
+16.96,inf,inf,inf,inf,inf,inf,inf,inf,16.97,inf,0.0,0.0,0.0,inf,inf,nan,nan,0.0,1.3888,-0.02,0.0,0.0,inf,inf,nan,nan,8.48,inf,inf,inf,inf,inf,inf,nan,nan
+16.96,inf,inf,inf,inf,inf,inf,inf,inf,16.97,inf,0.0,0.0,0.0,inf,inf,nan,nan,0.0,1.3894,-0.02,0.0,0.0,inf,inf,nan,nan,8.48,inf,inf,inf,inf,inf,inf,nan,nan
+16.96,inf,inf,inf,inf,inf,inf,inf,inf,16.97,inf,0.0,0.0,0.0,inf,inf,nan,nan,0.0,1.39,-0.02,0.0,0.0,inf,inf,nan,nan,8.48,inf,inf,inf,inf,inf,inf,nan,nan
+16.95,1.4455,24.5,24.5,0.21,1.0,0.5,inf,inf,16.95,2.842,0.19,0.2,0.07,0.9392,20.1,nan,nan,16.94,1.3965,23.66,23.66,0.25,0.9999,0.6,nan,nan,16.94,1.421,48.2,41.7,0.5,1.0,0.0,nan,nan
+16.94,1.4461,24.5,24.5,0.21,1.0,0.5,inf,inf,16.95,2.8434,0.0,0.0,0.0,inf,inf,nan,nan,16.94,1.3973,23.67,23.67,0.26,0.9999,0.6,nan,nan,16.94,1.4217,48.2,41.7,0.5,1.0,0.0,nan,nan
+16.95,1.4464,24.51,24.51,0.21,1.0,0.5,inf,inf,16.95,2.8444,-0.0,0.0,0.0,inf,inf,nan,nan,16.94,1.398,23.68,23.68,0.26,0.9999,0.6,nan,nan,16.94,1.4222,48.2,41.7,0.5,1.0,0.0,nan,nan
+16.94,1.4465,24.51,24.51,0.22,1.0,0.5,inf,inf,16.95,2.8452,-0.0,0.0,0.0,inf,inf,nan,nan,16.94,1.3987,23.69,23.69,0.26,0.9999,0.6,nan,nan,16.94,1.4226,48.2,41.7,0.5,1.0,0.0,nan,nan
+16.94,1.4467,24.51,24.51,0.21,1.0,0.5,inf,inf,16.95,2.8458,-0.0,0.0,0.0,inf,inf,nan,nan,16.94,1.3991,23.69,23.7,0.26,0.9999,0.6,nan,nan,16.94,1.4229,48.2,41.7,0.5,1.0,0.0,nan,nan
+0.0,1.4537,-0.0,0.0,0.0,inf,inf,inf,inf,0.0,inf,-0.0,0.0,0.0,inf,inf,nan,nan,17.48,inf,inf,inf,inf,inf,inf,nan,nan,8.74,inf,inf,inf,inf,inf,inf,nan,nan
+0.0,1.4554,-0.0,0.0,0.0,inf,inf,inf,inf,0.0,inf,0.0,0.0,0.0,inf,inf,nan,nan,17.48,inf,inf,inf,inf,inf,inf,nan,nan,8.74,inf,inf,inf,inf,inf,inf,nan,nan
+0.0,1.4559,-0.0,0.0,0.0,inf,inf,inf,inf,0.0,inf,0.0,0.0,0.0,inf,inf,nan,nan,17.48,inf,inf,inf,inf,inf,inf,nan,nan,8.74,inf,inf,inf,inf,inf,inf,nan,nan
+0.0,1.4559,-0.0,0.0,0.0,inf,inf,inf,inf,0.0,inf,0.0,0.0,0.0,inf,inf,nan,nan,17.48,inf,inf,inf,inf,inf,inf,nan,nan,8.74,inf,inf,inf,inf,inf,inf,nan,nan
+0.0,1.4571,-0.0,0.0,0.0,inf,inf,inf,inf,0.0,inf,-0.0,0.0,0.0,inf,inf,nan,nan,17.48,inf,inf,inf,inf,inf,inf,nan,nan,8.74,inf,inf,inf,inf,inf,inf,nan,nan

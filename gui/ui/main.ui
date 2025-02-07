@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1241</width>
-    <height>1138</height>
+    <height>841</height>
    </rect>
   </property>
   <property name="sizeIncrement">
@@ -154,20 +154,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btn_save_csv">
-         <property name="text">
-          <string>匯出CSV</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="btn_setting">
-         <property name="text">
-          <string>設定</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="btn_exit">
          <property name="text">
           <string>離開</string>
@@ -227,7 +213,7 @@
            <bool>false</bool>
           </property>
           <property name="currentIndex">
-           <number>3</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="page_connect_test">
            <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -242,7 +228,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>1073</width>
-                 <height>755</height>
+                 <height>531</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -485,7 +471,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>1073</width>
-                 <height>755</height>
+                 <height>531</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1129,7 +1115,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>1073</width>
-                 <height>755</height>
+                 <height>531</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -1150,6 +1136,11 @@
                   <layout class="QVBoxLayout" name="verticalLayout_17">
                    <item alignment="Qt::AlignTop">
                     <widget class="QLabel" name="label_auto_test_state">
+                     <property name="font">
+                      <font>
+                       <pointsize>36</pointsize>
+                      </font>
+                     </property>
                      <property name="text">
                       <string>請選擇右邊選單開始測試</string>
                      </property>
@@ -1168,16 +1159,9 @@
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_3">
                    <item>
-                    <widget class="QPushButton" name="btn_dc_resistance_cold_test">
+                    <widget class="QPushButton" name="btn_dc_resistance_test">
                      <property name="text">
-                      <string>冷直流阻抗測試</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="btn_dc_resistance_hot_test">
-                     <property name="text">
-                      <string>熱直流阻抗測試</string>
+                      <string>直流電阻測試</string>
                      </property>
                     </widget>
                    </item>
@@ -1217,7 +1201,7 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="btn_CNS14400_test">
+                    <widget class="QPushButton" name="btn_CNS_test">
                      <property name="text">
                       <string>CNS14400</string>
                      </property>
@@ -1272,9 +1256,9 @@
                <property name="geometry">
                 <rect>
                  <x>0</x>
-                 <y>-1430</y>
+                 <y>0</y>
                  <width>1056</width>
-                 <height>2661</height>
+                 <height>2864</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -1293,50 +1277,12 @@
                       </sizepolicy>
                      </property>
                      <property name="text">
-                      <string>直流冷電阻</string>
+                      <string>直流電阻</string>
                      </property>
                     </widget>
                    </item>
                    <item>
-                    <widget class="QLineEdit" name="lineEdit_dc_resistance_cold_result">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>80</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="readOnly">
-                      <bool>true</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLabel" name="label_71">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="text">
-                      <string>直流熱電阻</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QLineEdit" name="lineEdit_dc_resistance_hot_result">
+                    <widget class="QLineEdit" name="lineEdit_dc_resistance_result">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -1894,16 +1840,6 @@
                   </property>
                   <layout class="QHBoxLayout" name="horizontalLayout_13">
                    <item>
-                    <widget class="QWidget" name="widget_5" native="true">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                       <horstretch>1</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
                     <widget class="MplWidget" name="mpl_frequency_drift">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1914,18 +1850,8 @@
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>400</height>
+                       <height>600</height>
                       </size>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QWidget" name="widget_6" native="true">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                       <horstretch>1</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
                      </property>
                     </widget>
                    </item>
@@ -1998,7 +1924,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>1056</width>
-                 <height>870</height>
+                 <height>854</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -2425,7 +2351,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QFrame" name="frame_2">
+                   <widget class="QFrame" name="frame_8">
                     <property name="enabled">
                      <bool>false</bool>
                     </property>
@@ -3259,7 +3185,7 @@
      <x>0</x>
      <y>0</y>
      <width>1241</width>
-     <height>31</height>
+     <height>30</height>
     </rect>
    </property>
   </widget>
@@ -3284,7 +3210,6 @@
   <tabstop>btn_new</tabstop>
   <tabstop>btn_auto_test</tabstop>
   <tabstop>btn_connect</tabstop>
-  <tabstop>btn_setting</tabstop>
   <tabstop>btn_open</tabstop>
   <tabstop>btn_test_result</tabstop>
   <tabstop>btn_save</tabstop>
@@ -3293,7 +3218,7 @@
   <tabstop>btn_Test_PowerSupply</tabstop>
   <tabstop>scrollArea_pg_connect</tabstop>
   <tabstop>scrollArea_pg_auto</tabstop>
-  <tabstop>btn_dc_resistance_cold_test</tabstop>
+  <tabstop>btn_dc_resistance_test</tabstop>
   <tabstop>btn_no_load_test</tabstop>
   <tabstop>btn_lock_rotor_test</tabstop>
   <tabstop>btn_separate_excitation_test</tabstop>
@@ -3301,7 +3226,7 @@
   <tabstop>btn_load_test</tabstop>
   <tabstop>btn_auto_test_stop</tabstop>
   <tabstop>scrollArea_pg_res</tabstop>
-  <tabstop>lineEdit_dc_resistance_cold_result</tabstop>
+  <tabstop>lineEdit_dc_resistance_result</tabstop>
   <tabstop>lineEdit_open_v</tabstop>
   <tabstop>lineEdit_open_i</tabstop>
   <tabstop>lineEdit_open_p</tabstop>
@@ -3357,7 +3282,7 @@
   <connection>
    <sender>pushButton_17</sender>
    <signal>clicked(bool)</signal>
-   <receiver>frame_2</receiver>
+   <receiver>frame_8</receiver>
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
