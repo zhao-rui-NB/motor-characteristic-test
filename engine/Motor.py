@@ -32,6 +32,8 @@ class Motor:
         self.data_separate_excitation = []
         self.data_frequency_drift = []
         self.data_CNS14400 = []
+        self.data_three_phase_starting_torque = []
+        self.data_single_phase_starting_torque = []
         
         # test results
         self.result_dc_resistance = None
@@ -41,6 +43,8 @@ class Motor:
         self.result_separate_excitation = None
         self.result_frequency_drift = None
         self.result_CNS14400 = None
+        self.result_three_phase_starting_torque = None
+        self.result_single_phase_starting_torque = None
     
     def update_motor_information(self, key, value):
         self.information_dict[key] = value
@@ -129,7 +133,21 @@ class Motor:
             'raw_data' : raw_data, 
         }
         self.data_CNS14400.append(res)  
-    
+
+    def add_result_three_phase_starting_torque(self, raw_data):
+        res = {
+            'timestamp': self.make_time_stamp(),
+            'raw_data' : raw_data, 
+        }
+        self.data_three_phase_starting_torque.append(res)
+
+    def add_result_single_phase_starting_torque(self, raw_data):
+        res = {
+            'timestamp': self.make_time_stamp(),
+            'raw_data' : raw_data, 
+        }
+        self.data_single_phase_starting_torque.append(res)
+
     # analysis functions
     def analyze_dc_resistance(self):
         data_dc_resistance = self.data_dc_resistance
@@ -843,6 +861,7 @@ class Motor:
                 'result_separate_excitation': self.result_separate_excitation,
                 'result_frequency_drift': self.result_frequency_drift,
                 'result_CNS14400': self.result_CNS14400,
+                'result_three_phase_starting_torque': self.result_three_phase_starting_torque,
             },
             
             'test_data_log': {
@@ -853,6 +872,7 @@ class Motor:
                 'data_separate_excitation': self.data_separate_excitation,
                 'frequency_drift': self.data_frequency_drift,
                 'CNS14400': self.data_CNS14400,
+                'three_phase_starting_torque': self.data_three_phase_starting_torque,
             },
         }
         
@@ -876,7 +896,9 @@ class Motor:
         self.result_separate_excitation = data['test_results']['result_separate_excitation']
         self.result_frequency_drift = data['test_results']['result_frequency_drift']
         self.result_CNS14400 = data['test_results']['result_CNS14400']
-        
+        self.result_three_phase_starting_torque = data.get('test_results', {}).get('result_three_phase_starting_torque', [])
+        self.result_single_phase_starting_torque = data.get('test_results', {}).get('result_single_phase_starting_torque', [])
+
         self.data_dc_resistance = data['test_data_log']['data_dc_resistance']
         self.data_open_circuit = data['test_data_log']['data_open_circuit']
         self.data_locked_rotor = data['test_data_log']['data_locked_rotor']
@@ -884,6 +906,10 @@ class Motor:
         self.data_separate_excitation = data['test_data_log']['data_separate_excitation']
         self.data_frequency_drift = data['test_data_log']['frequency_drift']
         self.data_CNS14400 = data['test_data_log']['CNS14400']
+        self.data_three_phase_starting_torque = data.get('test_data_log', {}).get('three_phase_starting_torque', [])
+        self.data_single_phase_starting_torque = data.get('test_data_log', {}).get('single_phase_starting_torque', [])
+
+
     # def _fix_meter_I2(self, )
     def _raw_data_to_csv(self, data_log):
         # raw_data = data_log['raw_data']
@@ -920,6 +946,8 @@ class Motor:
             ('separate_excitation', self.data_separate_excitation),
             ('frequency_drift', self.data_frequency_drift),
             # ('CNS14400', self.result_CNS14400),
+            ('three_phase_starting_torque', self.data_three_phase_starting_torque),
+            ('single_phase_starting_torque', self.data_single_phase_starting_torque),
         ]
 
 

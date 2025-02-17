@@ -1,0 +1,45 @@
+{
+    "rated_voltage": 220.0,
+    "power_phases": 3,
+    "speed": 3450.0,
+    "rated_current": 3.0,
+    "frequency": 60.0,
+    "horsepower": 1.0,
+    "poles": 2,
+    "no_load_current": 1.0,
+    "information_dict": {
+        "備註": "",
+        "電腦編號": "est003050338-4",
+        "試驗日期": "2025/02/17",
+        "檢驗員": "吳鴻源",
+        "印表日期": "2025/02/17",
+        "序號": "00016",
+        "型式": "st0-332  1000319",
+        "廠牌": "st0",
+        "工作單號": "b00200021",
+        "製造號碼": "y88793/1",
+        "定子規格": "160Φ*110L*36T   P1-8",
+        "轉子規格": "100L*94.3Φ接線Y",
+        "本線": "0.75Φ*1+0.8Φ*1   40T"
+    },
+    "test_results": {
+        "result_dc_resistance": null,
+        "result_open_circuit": null,
+        "result_locked_rotor": null,
+        "result_load_test": null,
+        "result_separate_excitation": null,
+        "result_frequency_drift": null,
+        "result_CNS14400": null,
+        "result_three_phase_starting_torque": null
+    },
+    "test_data_log": {
+        "data_dc_resistance": [],
+        "data_open_circuit": [],
+        "data_locked_rotor": [],
+        "data_load": [],
+        "data_separate_excitation": [],
+        "frequency_drift": [],
+        "CNS14400": [],
+        "three_phase_starting_torque": []
+    }
+}

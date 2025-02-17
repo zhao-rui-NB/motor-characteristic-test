@@ -14,7 +14,7 @@ from engine.TestRunner import TestRunner
 
 
 from gui.ui.main_ui import Ui_MainWindow
-from gui.qthread_tasks import Qthread_test_delay, Qthread_run_open_circuit_test, Qthread_run_lock_rotor_test, Qthread_run_load_test, Qthread_run_separate_excitation_test, Qthread_run_frequency_drift_test, Qthread_run_dc_resistance_test, Qthread_run_CNS14400_test
+from gui.qthread_tasks import *
 from gui.DualOutput import DualOutput
 
 import sys
@@ -152,6 +152,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_separate_excitation_test.clicked.connect(self.on_separate_excitation_test_clicked)
         self.btn_frequency_drift_test.clicked.connect(self.on_frequency_drift_test_clicked)
         self.btn_CNS_test.clicked.connect(self.on_btn_CNS14400_test_clicked)
+        self.btn_three_phase_start_torque_test.clicked.connect(self.on_btn_3p_start_torque_test_clicked)
+        self.btn_single_phase_start_torque_test.clicked.connect(self.on_btn_1p_start_torque_test_clicked)
+
         # self.btn_CNS_test.clicked.connect(lambda: print('HHHHHWWWW'))   
            
         self.btn_auto_test_stop.clicked.connect(self.on_auto_task_stop_clicked)
@@ -595,6 +598,41 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
             self.label_auto_test_state.setText('CNS14400測試中...')
+
+    def on_btn_3p_start_torque_test_clicked(self):
+        print('on_btn_3p_start_torque_test_clicked')
+        if self.auto_test_qthread and self.auto_test_qthread.isRunning():
+            QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
+            return
+        # a msg box to confirm the test and mechanical connection
+        reply = QMessageBox.question(self, '自動測試', '3相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+
+        if reply == QMessageBox.StandardButton.Ok:
+            # disable all the buttons
+            self.task_running_mode(True)
+            self.auto_test_qthread = Qthread_run_three_phase_starting_torque_test(self.test_runner, self.motor)
+            self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
+            self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('3相啟動轉矩測試中...')
+
+    def on_btn_1p_start_torque_test_clicked(self):  
+        print('on_btn_1p_start_torque_test_clicked')
+        if self.auto_test_qthread and self.auto_test_qthread.isRunning():
+            QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
+            return
+        # a msg box to confirm the test and mechanical connection
+        reply = QMessageBox.question(self, '自動測試', '1相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+
+        if reply == QMessageBox.StandardButton.Ok:
+            # disable all the buttons
+            self.task_running_mode(True)
+            self.auto_test_qthread = Qthread_run_single_phase_starting_torque_test(self.test_runner, self.motor)
+            self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
+            self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('1相啟動轉矩測試中...')
+        
+
+
     
     
     

@@ -227,8 +227,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1073</width>
-                 <height>531</height>
+                 <width>318</width>
+                 <height>212</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -470,8 +470,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1073</width>
-                 <height>531</height>
+                 <width>744</width>
+                 <height>517</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1208,6 +1208,20 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="QPushButton" name="btn_three_phase_start_torque_test">
+                     <property name="text">
+                      <string>三相啟動轉矩測試</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btn_single_phase_start_torque_test">
+                     <property name="text">
+                      <string>單相啟動轉矩測試</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
                     <spacer name="verticalSpacer_2">
                      <property name="orientation">
                       <enum>Qt::Vertical</enum>
@@ -1257,7 +1271,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1056</width>
+                 <width>508</width>
                  <height>2864</height>
                 </rect>
                </property>
@@ -1923,7 +1937,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1056</width>
+                 <width>810</width>
                  <height>854</height>
                 </rect>
                </property>

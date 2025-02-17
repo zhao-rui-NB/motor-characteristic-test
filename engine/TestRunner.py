@@ -261,35 +261,21 @@ class TestRunner:
             self.device_manager.power_supply.set_voltage_offset(0) # set all dc offset to 0
             self.device_manager.power_supply.set_instrument_edit(0) # 0 Each
             self.device_manager.power_supply.set_instrument_select(i)
+
+
+            self.device_manager.power_supply.set_voltage_offset(10) # 
             time.sleep(2)
-            # v_test_dc = 1  # save in motor                      
-            while True:
-                self.device_manager.power_supply.set_voltage_offset(motor.v_test_dc)
-                time.sleep(0.35)
+
+
+            print(f"[run_dc_resistance_test] start read data")
+            for _ in range(5):
+                time.sleep(1)
                 data:dict = self.device_manager.power_meter.read_data()
+                raw_data.append({'power_meter': data})
                 v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
                 i_str = f"I1:{data.get('I1')}, I2:{data.get('I2')}, I3:{data.get('I3')}"
-                print(f"[run_dc_resistance_test] read from power meter, {v_str}, {i_str}")
-                
-                if i==0:
-                    now_current = data.get('I1')
-                elif i==1:
-                    now_current = data.get('I1') + data.get('I3')
-                elif i==2:
-                    now_current = data.get('I3')
-                
-                if now_current >= motor.rated_current/2:
-                    print(f"[run_dc_resistance_test] start read data")
-                    for _ in range(5):
-                        # time.sleep(1)
-                        time.sleep(0.4)
-                        data:dict = self.device_manager.power_meter.read_data()
-                        raw_data.append({'power_meter': data})
-                        v_str = f"V1:{data.get('V1')}, V2:{data.get('V2')}, V3:{data.get('V3')}"
-                        i_str = f"I1:{data.get('I1')}, I2:{data.get('I2')}, I3:{data.get('I3')}"
-                        print(f"[run_dc_resistance_test] read from power meter, {v_str}, {i_str}")  
-                    break
-                motor.v_test_dc += 0.5
+                print(f"[run_dc_resistance_test] read from power meter, {v_str}, {i_str}")  
+
         print(f'[run_dc_resistance_test] Test Done')
 
         self.device_manager.power_supply.set_output(0) # u 關閉測試電壓輸出Y27
@@ -364,8 +350,9 @@ class TestRunner:
             if now_current >= motor.rated_current or data.get('V1') > motor.rated_voltage*0.5:
                 print(f"[run_lock_rotor_test] start read data")
                 for _ in range(5):
-                    data:dict = self.device_manager.power_meter.read_data()
-                    raw_data.append({'power_meter': data})
+                    power_meter = self.device_manager.power_meter.read_data()
+                    mechanical = self.device_manager.plc_mechanical.get_mechanical_data()
+                    raw_data.append({'power_meter': power_meter, 'mechanical': mechanical})
                     time.sleep(1)
                 break
             v_test += 1
@@ -381,6 +368,92 @@ class TestRunner:
         # v. 結束測試 
         print('[run_lock_rotor_test] Test Done')
         return True
+    
+    # 3p 啟動轉矩試驗
+    def run_three_phase_starting_torque_test(self, motor:Motor):
+        self.system_init(3) # 3 phase system
+        self.setup_ac_balance_and_check(motor)
+        self.device_manager.power_meter.set_voltage_range(300)
+        self.device_manager.power_meter.set_current_range(20)
+        self.device_manager.plc_mechanical.set_break(2000)
+        
+        self.device_manager.plc_electric.set_motor_output_three()
+            
+        v_test = 0
+        raw_data = []
+        while True:
+            self.device_manager.power_supply.set_voltage(v_test/1.732)
+            time.sleep(1)
+
+            power_meter = self.device_manager.power_meter.read_data()
+            mechanical = self.device_manager.plc_mechanical.get_mechanical_data()
+
+            meter_str = f"V_SIGMA:{power_meter.get('V_SIGMA')}, I_SIGMA:{power_meter.get('I_SIGMA')}, P_SIGMA:{power_meter.get('P_SIGMA')}, LAMBDA_SIGMA:{power_meter.get('LAMBDA_SIGMA')}"
+            print(f"[run_three_phase_starting_torque_test] read from power meter, {meter_str}")
+
+            raw_data.append({'power_meter': power_meter, 'mechanical': mechanical})
+            
+            now_current = power_meter.get('I_SIGMA')
+            if now_current >= motor.rated_current*4 or now_current >= 10:
+                break
+            v_test += 10
+                
+        self.device_manager.power_supply.set_output(0)
+        self.device_manager.plc_electric.set_motor_output_off()
+        self.device_manager.plc_mechanical.set_break(0)
+
+        motor.add_result_three_phase_starting_torque(raw_data)
+
+        # v. 結束測試 
+        print('[run_three_phase_starting_torque_test] Test Done')
+        return True
+    
+    # 1p 
+    def run_singel_phase_starting_torque_test(self, motor:Motor):
+        self.system_init(1) # 3 phase system
+        self.setup_ac_single_phase_and_check(motor)
+        
+        self.device_manager.power_meter.set_voltage_range(300)
+
+        # setting current range
+        # <Current> = 0.5, 1, 2, 5, 10, 20(A)
+        cur_range = [0.5, 1, 2, 5, 10, 20]
+        current_range = 20 
+        for i in range(len(cur_range)):
+            if cur_range[i] > motor.rated_current*0.5:
+                current_range = cur_range[i]
+                break
+        print(f"[run_singel_phase_starting_torque_test] setting current range to {current_range}")
+        self.device_manager.power_meter.set_current_range(current_range)
+
+        self.device_manager.plc_mechanical.set_break(2000)
+        
+        self.device_manager.plc_electric.set_motor_output_single()            
+        
+        self.device_manager.power_supply.set_voltage(motor.rated_voltage)
+
+        raw_data = []
+        for i in range(5):
+            time.sleep(1)   
+            power_meter = self.device_manager.power_meter.read_data()
+            mechanical = self.device_manager.plc_mechanical.get_mechanical_data()
+
+            # read V2
+            meter_str = f"V2:{power_meter.get('V2')}, I2:{power_meter.get('I2')}, P2:{power_meter.get('P2')}, LAMBDA2:{power_meter.get('LAMBDA2')}"
+            print(f"[run_singel_phase_starting_torque_test] read from power meter, {meter_str}")
+
+            raw_data.append({'power_meter': power_meter, 'mechanical': mechanical})
+                
+        self.device_manager.power_supply.set_output(0)
+        self.device_manager.plc_electric.set_motor_output_off()
+        self.device_manager.plc_mechanical.set_break(0)
+
+        motor.add_result_single_phase_starting_torque(raw_data)
+
+        # v. 結束測試 
+        print('[run_singel_phase_starting_torque_test] Test Done')
+        return True
+    
     # 負載試驗 ok
     def run_load_test(self, motor:Motor, run_with_single_phase=False):
         if run_with_single_phase:
