@@ -456,6 +456,10 @@ class Motor:
             'power': power,
         }
     def plot_separate_excitation(self, ax:plt.Axes=None, show=False):
+        if not self.result_dc_resistance:
+            print('No data for Separate Excitation')
+            return
+
         if ax is None:
             fig, ax = plt.subplots()
         

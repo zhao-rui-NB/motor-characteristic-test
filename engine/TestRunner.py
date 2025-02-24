@@ -464,15 +464,15 @@ class TestRunner:
             self.system_init(3) # 3 phase system
             self.setup_ac_balance_and_check(motor)
 
-            cur_range = [0.5, 1, 2, 5, 10, 20]
-            # find > 0.6 rated current in the list
-            current_range = 20 
-            for i in range(len(cur_range)):
-                if cur_range[i] > motor.rated_current*6:
-                    current_range = cur_range[i]
-                    break
-            print(f"[run_load_test] setting current range to {current_range}")  
-            self.device_manager.power_meter.set_current_range(current_range)
+        cur_range = [0.5, 1, 2, 5, 10, 20]
+        # find > 0.6 rated current in the list
+        current_range = 20 
+        for i in range(len(cur_range)):
+            if cur_range[i] > motor.rated_current*6:
+                current_range = cur_range[i]
+                break
+        print(f"[run_load_test] setting current range to {current_range}")  
+        self.device_manager.power_meter.set_current_range(current_range)
 
         self.device_manager.power_supply.set_voltage(0)
         if run_with_single_phase:
@@ -498,7 +498,8 @@ class TestRunner:
         # r. 連續  讀取 WT333  [電壓V 電流I, 功率P, 功率因數PF ]
         # s. 重複(q.)直到馬達鎖住 ( 轉速=0)
         raw_data = []
-        for da in range(0, 4000, 5):
+        step = 2 if motor.is_single_phase() else 5
+        for da in range(0, 4000, step):
             self.device_manager.plc_mechanical.set_break(da)
             time.sleep(0.5)
             
@@ -511,7 +512,7 @@ class TestRunner:
             # check single phase motor is over current
             # if over current switch to single phase mode run again
             # if motor.is_single_phase() and power_meter.get('I1') > 12:
-            if motor.is_single_phase() and not run_with_single_phase and power_meter.get('I1') > 5:
+            if motor.is_single_phase() and not run_with_single_phase and power_meter.get('I1') > 13:
                 self.device_manager.plc_electric.set_motor_output_off()
                 time.sleep(1)
                 self.device_manager.power_supply.set_output(0)
@@ -693,25 +694,35 @@ class TestRunner:
             print(f'[run_CNS14400_test] Load Test {load_percent}% Start...')
             start_motor()
             start_time = time.time()    
-            break_da = 100
+            break_da = 0
             while True:
                 # read torque and speed
                 mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
                 now_power = mechanical_data['speed'] * mechanical_data['torque'] / 9.549
                 # 剩餘時間
                 print(f"[run_CNS14400_test] Time Left:{load_interval - (time.time() - start_time)}, DA:{break_da},current power:{now_power}, target power:{motor.horsepower*746*load_percent / 100}")
-                 
-                # PI control
-                p = 0.3
 
-                error = motor.horsepower*746*load_percent / 100 - now_power
-                break_da = break_da + min(p*error, 20)
+                if mechanical_data['speed'] > 0.6*motor.speed:
+                    # PI control
+                    if motor.is_single_phase():
+                        p = 0.1
+                        error = motor.horsepower*746*load_percent / 100 - now_power
+                        break_da = break_da + min(p*error, 7)
+                    else:
+                        p = 0.3
+                        error = motor.horsepower*746*load_percent / 100 - now_power
+                        break_da = break_da + min(p*error, 20)
 
-                # in range 0-4000 int 
-                break_da = max(0, break_da)
-                break_da = min(4000, break_da)
-                break_da = int(break_da)
-                self.device_manager.plc_mechanical.set_break(break_da)
+                    # in range 0-4000 int 
+                    break_da = max(0, break_da)
+                    break_da = min(4000, break_da)
+                    break_da = int(break_da)
+                    self.device_manager.plc_mechanical.set_break(break_da)
+                else:
+                    self.device_manager.plc_mechanical.set_break(0)
+                    if motor.is_single_phase():
+                        break_da = 0
+
 
                 time.sleep(1)    
                     

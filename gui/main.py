@@ -235,15 +235,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     # log 
     def on_update_log_signal(self, message):
         vertical_scrollbar = self.textEdit_system_log.verticalScrollBar()
-        scrollbar_pos = vertical_scrollbar.value()
-        is_at_bottom = scrollbar_pos == vertical_scrollbar.maximum()
+        # scrollbar_pos = vertical_scrollbar.value()
+        # is_at_bottom = scrollbar_pos == vertical_scrollbar.maximum()
         
         self.textEdit_system_log.setText(self.textEdit_system_log.toPlainText() + message)
         
-        if is_at_bottom:
-            vertical_scrollbar.setValue(vertical_scrollbar.maximum())
-        else:
-            vertical_scrollbar.setValue(scrollbar_pos)
+        # if is_at_bottom:
+        #     vertical_scrollbar.setValue(vertical_scrollbar.maximum())
+        # else:
+        #     vertical_scrollbar.setValue(scrollbar_pos)
+
+        vertical_scrollbar.setValue(vertical_scrollbar.maximum())
+        
 
     # resize event , resize the figure
     
@@ -494,6 +497,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_frequency_drift_test.setEnabled(not running)
         self.btn_load_test.setEnabled(not running)
         self.btn_CNS_test.setEnabled(not running)
+
+        self.btn_single_phase_start_torque_test.setEnabled(not running)
+        self.btn_three_phase_start_torque_test.setEnabled(not running)
 
         self.btn_auto_test_stop.setEnabled(running)
     
