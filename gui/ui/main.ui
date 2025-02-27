@@ -470,8 +470,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>744</width>
-                 <height>517</height>
+                 <width>1073</width>
+                 <height>531</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1206,6 +1206,24 @@
                       <string>CNS14400</string>
                      </property>
                     </widget>
+                   </item>
+                   <item>
+                    <layout class="QHBoxLayout" name="horizontalLayout_9">
+                     <item>
+                      <widget class="QLabel" name="label_71">
+                       <property name="text">
+                        <string>加載時間(S)</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLineEdit" name="lineEdit_cns_step_time">
+                       <property name="text">
+                        <string>300</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
                    </item>
                    <item>
                     <widget class="QPushButton" name="btn_three_phase_start_torque_test">

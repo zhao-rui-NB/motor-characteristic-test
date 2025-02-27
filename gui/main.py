@@ -151,13 +151,29 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_load_test.clicked.connect(self.on_load_test_clicked)
         self.btn_separate_excitation_test.clicked.connect(self.on_separate_excitation_test_clicked)
         self.btn_frequency_drift_test.clicked.connect(self.on_frequency_drift_test_clicked)
-        self.btn_CNS_test.clicked.connect(self.on_btn_CNS14400_test_clicked)
+
+        # lineEdit_cns_step_time setValidator int
+        self.lineEdit_cns_step_time.setValidator(QIntValidator())
+
+        # if line edit edit finish connect range not in 60-500 , set to 60
+
+        def on_lineEdit_cns_step_time():
+            if int(self.lineEdit_cns_step_time.text()) < 60:
+                self.lineEdit_cns_step_time.setText('60')
+            elif int(self.lineEdit_cns_step_time.text()) > 500:
+                self.lineEdit_cns_step_time.setText('500')
+                
+        self.lineEdit_cns_step_time.editingFinished.connect(on_lineEdit_cns_step_time)
+        # self.lineEdit_cns_step_time.setValidator
+        # self.btn_CNS_test.clicked.connect(self.on_btn_CNS14400_test_clicked)
+        
         self.btn_three_phase_start_torque_test.clicked.connect(self.on_btn_3p_start_torque_test_clicked)
         self.btn_single_phase_start_torque_test.clicked.connect(self.on_btn_1p_start_torque_test_clicked)
 
         # self.btn_CNS_test.clicked.connect(lambda: print('HHHHHWWWW'))   
            
         self.btn_auto_test_stop.clicked.connect(self.on_auto_task_stop_clicked)
+
 
         
         # test connect page btn
@@ -598,9 +614,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         reply = QMessageBox.question(self, '自動測試', 'CNS14400測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         
         if reply == QMessageBox.StandardButton.Ok:
+
+            # get the step time 
+            step_time = self.lineEdit_cns_step_time.text()
+            step_time = int(step_time) if step_time else 60
+            print(f'[on_btn_CNS14400_test_clicked] cns step time: {step_time}')
+
             # disable all the buttons
             self.task_running_mode(True)
-            self.auto_test_qthread = Qthread_run_CNS14400_test(self.test_runner, self.motor)
+            self.auto_test_qthread = Qthread_run_CNS14400_test(self.test_runner, self.motor, step_time)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
             self.label_auto_test_state.setText('CNS14400測試中...')

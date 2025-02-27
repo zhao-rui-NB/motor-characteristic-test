@@ -635,7 +635,7 @@ class TestRunner:
         print('[frequency_drift_test] Test Done')
         return True
     
-    def run_CNS14400_test(self, motor:Motor, run_with_single_phase=False):
+    def run_CNS14400_test(self, motor:Motor, run_with_single_phase=False, step_time=60):
         def start_motor():
             # start motor
             if run_with_single_phase:
@@ -687,7 +687,8 @@ class TestRunner:
         
         # time 
         # load_interval = 5*60
-        load_interval = 60
+        # load_interval = 60
+        load_interval = step_time
         load_arr = [25, 50, 75, 100, 115, 125, 150]
         
         for load_percent in load_arr:
