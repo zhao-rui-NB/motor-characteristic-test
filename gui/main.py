@@ -165,7 +165,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 
         self.lineEdit_cns_step_time.editingFinished.connect(on_lineEdit_cns_step_time)
         # self.lineEdit_cns_step_time.setValidator
-        # self.btn_CNS_test.clicked.connect(self.on_btn_CNS14400_test_clicked)
+        self.btn_CNS_test.clicked.connect(self.on_btn_CNS14400_test_clicked)
         
         self.btn_three_phase_start_torque_test.clicked.connect(self.on_btn_3p_start_torque_test_clicked)
         self.btn_single_phase_start_torque_test.clicked.connect(self.on_btn_1p_start_torque_test_clicked)
@@ -669,6 +669,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread.terminate()
             self.task_running_mode(False)
             self.label_auto_test_state.setText('測試已停止')
+
+            # turn off the power supply
+            self.device_manager.plc_electric.set_ps_output_off()
         
     def on_auto_test_task_done(self, succ):
         self.task_running_mode(False)

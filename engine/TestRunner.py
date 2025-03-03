@@ -706,9 +706,10 @@ class TestRunner:
                 if mechanical_data['speed'] > 0.6*motor.speed:
                     # PI control
                     if motor.is_single_phase():
-                        p = 0.1
+                        p = 0.25
                         error = motor.horsepower*746*load_percent / 100 - now_power
                         break_da = break_da + min(p*error, 7)
+                        print(f"[run_CNS14400_test] error:{error}, break_da:{break_da}")
                     else:
                         p = 0.3
                         error = motor.horsepower*746*load_percent / 100 - now_power
@@ -717,8 +718,8 @@ class TestRunner:
                     # in range 0-4000 int 
                     break_da = max(0, break_da)
                     break_da = min(4000, break_da)
-                    break_da = int(break_da)
-                    self.device_manager.plc_mechanical.set_break(break_da)
+                    # break_da = int(break_da)
+                    self.device_manager.plc_mechanical.set_break(int(break_da))
                 else:
                     self.device_manager.plc_mechanical.set_break(0)
                     if motor.is_single_phase():
