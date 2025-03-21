@@ -499,7 +499,10 @@ class Motor:
         line_y = [power[voltage_80_index], power[voltage_100_index]]
         ax.plot(line_x, line_y, 'b-')
 
-        m = (line_y[1] - line_y[0]) / (line_x[1] - line_x[0])
+        try:
+            m = (line_y[1] - line_y[0]) / (line_x[1] - line_x[0])
+        except ZeroDivisionError:
+            m = 0
         b = line_y[0] - m * line_x[0]
 
         # print('m', m, 'b', b)
@@ -913,6 +916,28 @@ class Motor:
         self.data_three_phase_starting_torque = data.get('test_data_log', {}).get('three_phase_starting_torque', [])
         self.data_single_phase_starting_torque = data.get('test_data_log', {}).get('single_phase_starting_torque', [])
 
+    def remove_test_result(self):
+        # test data log
+        self.data_dc_resistance = []
+        self.data_open_circuit = []
+        self.data_locked_rotor = []
+        self.data_load = []
+        self.data_separate_excitation = []
+        self.data_frequency_drift = []
+        self.data_CNS14400 = []
+        self.data_three_phase_starting_torque = []
+        self.data_single_phase_starting_torque = []
+        
+        # test results
+        self.result_dc_resistance = None
+        self.result_open_circuit = None
+        self.result_locked_rotor = None
+        self.result_load_test = None
+        self.result_separate_excitation = None
+        self.result_frequency_drift = None
+        self.result_CNS14400 = None
+        self.result_three_phase_starting_torque = None
+        self.result_single_phase_starting_torque = None
 
     # def _fix_meter_I2(self, )
     def _raw_data_to_csv(self, data_log):

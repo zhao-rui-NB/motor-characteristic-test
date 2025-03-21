@@ -262,8 +262,19 @@ class TestRunner:
             self.device_manager.power_supply.set_instrument_edit(0) # 0 Each
             self.device_manager.power_supply.set_instrument_select(i)
 
-
-            self.device_manager.power_supply.set_voltage_offset(10) # 
+            if motor.is_single_phase():
+                if motor.rated_voltage < 130: # 110V motor
+                    if motor.horsepower > 0.25:
+                        self.device_manager.power_supply.set_voltage_offset(2)
+                    else:
+                        self.device_manager.power_supply.set_voltage_offset(5)
+                else: # 220V motor
+                    if motor.horsepower > 0.25:
+                        self.device_manager.power_supply.set_voltage_offset(5)
+                    else:
+                        self.device_manager.power_supply.set_voltage_offset(10)
+            else: # 3 phase motor
+                self.device_manager.power_supply.set_voltage_offset(10) #
             time.sleep(2)
 
 
@@ -430,6 +441,7 @@ class TestRunner:
         
         self.device_manager.plc_electric.set_motor_output_single()            
         
+        self.device_manager.power_supply.set_current_limit(45)
         self.device_manager.power_supply.set_voltage(motor.rated_voltage)
 
         raw_data = []
@@ -456,6 +468,11 @@ class TestRunner:
     
     # 負載試驗 ok
     def run_load_test(self, motor:Motor, run_with_single_phase=False):
+        # if motor is single phase voltage < 130 and hp > 0.25, run with single phase
+        if not run_with_single_phase:
+            if motor.is_single_phase() and motor.rated_voltage < 130 and motor.horsepower > 0.25:
+                return self.run_load_test(motor, run_with_single_phase=True)
+
         if run_with_single_phase:
             self.system_init(1)
             self.setup_ac_single_phase_and_check(motor)
@@ -488,7 +505,7 @@ class TestRunner:
             else:
                 self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732*i/100)
                 if motor.is_single_phase():
-                    time.sleep(0.5)
+                    time.sleep(1)
                 else:
                     time.sleep(0.2)
         time.sleep(1)
@@ -498,7 +515,7 @@ class TestRunner:
         # r. 連續  讀取 WT333  [電壓V 電流I, 功率P, 功率因數PF ]
         # s. 重複(q.)直到馬達鎖住 ( 轉速=0)
         raw_data = []
-        step = 2 if motor.is_single_phase() else 5
+        step = 3 if motor.is_single_phase() else 5
         for da in range(0, 4000, step):
             self.device_manager.plc_mechanical.set_break(da)
             time.sleep(0.5)
@@ -572,17 +589,33 @@ class TestRunner:
         print('[run_separate_excitation_test] Test Done')
         return True
     # 頻率飄移 95 100 105, 
-    def run_frequency_drift_test(self, motor:Motor):
-        self.system_init(3) # 3 phase system    
-        self.setup_ac_balance_and_check(motor)
-        # print('[run_separate_excitation_test] ”待測馬達請脫離扭矩測試系統”')
-        # input('Press Enter to continue:')
+    def run_frequency_drift_test(self, motor:Motor, run_with_single_phase=False):
         
-        self.device_manager.plc_electric.set_motor_output_three()
+        if not run_with_single_phase:
+            if motor.is_single_phase() and motor.rated_voltage < 130 and motor.horsepower > 0.25:
+                print('[run_frequency_drift_test] Retry with Single Phase Mode...')
+                return self.run_frequency_drift_test(motor, run_with_single_phase=True)
+
+        
+        if run_with_single_phase:
+            self.system_init(1)
+            self.setup_ac_single_phase_and_check(motor)
+            self.device_manager.plc_electric.set_motor_output_single()
+
+            self.device_manager.power_supply.set_current_limit(35)
+
+        else:
+            self.system_init(3) # 3 phase system    
+            self.setup_ac_balance_and_check(motor)
             
+            self.device_manager.plc_electric.set_motor_output_three()
+        
         # set voltage 30% - 100%
         for i in range(30, 100+1, 5):
-            self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * i/100)
+            if run_with_single_phase:
+                self.device_manager.power_supply.set_voltage(motor.rated_voltage*i/100)
+            else:
+                self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * i/100)
             time.sleep(0.2)
         print('[run_open_circuit_test] 啟動完成')
 
@@ -635,12 +668,25 @@ class TestRunner:
         print('[frequency_drift_test] Test Done')
         return True
     
-    def run_CNS14400_test(self, motor:Motor, run_with_single_phase=False, step_time=60):
+    def run_CNS14400_test(self, motor:Motor, run_with_single_phase=False, step_time=60, enable_150=True):
+        
+        # if motor is single phase voltage < 130 and hp > 0.25, run with single phase
+        if not run_with_single_phase:
+            if motor.is_single_phase() and motor.rated_voltage < 130 and motor.horsepower > 0.25:
+                return self.run_CNS14400_test(motor, run_with_single_phase=True, step_time=step_time, enable_150=enable_150)
+
+
+
+        # print all parameter
+        print(f"[run_CNS14400_test] run_with_single_phase:{run_with_single_phase}, step_time:{step_time}, enable_150:{enable_150}")
+        
         def start_motor():
             # start motor
             if run_with_single_phase:
                 self.system_init(1)
                 self.setup_ac_single_phase_and_check(motor)
+
+                self.device_manager.power_supply.set_current_limit(30)
 
             else:
                 self.system_init(3) # 3 phase system
@@ -689,7 +735,14 @@ class TestRunner:
         # load_interval = 5*60
         # load_interval = 60
         load_interval = step_time
-        load_arr = [25, 50, 75, 100, 115, 125, 150]
+        # load_arr = [25, 50, 75, 100, 115, 125, 150]
+        # load_arr = [25, 50, 75, 100, 125, 150] # remove 115
+
+        if enable_150:
+            load_arr = [25, 50, 75, 100, 125, 150]
+        else:
+            load_arr = [25, 50, 75, 100, 125]
+
         
         for load_percent in load_arr:
             print(f'[run_CNS14400_test] Load Test {load_percent}% Start...')

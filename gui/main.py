@@ -86,6 +86,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_save.clicked.connect(self.on_save_project)
         self.btn_open.clicked.connect(self.on_open_project)
         self.btn_new.clicked.connect(self.on_new_project)
+        self.btn_remove_test_result.clicked.connect(self.on_remove_test_result)
         # self.btn_save_csv.clicked.connect(self.on_btn_save_csv)
         
         # motor parameter
@@ -500,6 +501,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.motor.save_to_csv_files(dir_name)
             QMessageBox.information(self, 'Success', 'CSV檔案儲存成功')
 
+    def on_remove_test_result(self):
+        self.motor.remove_test_result()
+        self.update_test_result_page()
     
     ##############################################################################
     # Auto Test page
@@ -516,6 +520,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.btn_single_phase_start_torque_test.setEnabled(not running)
         self.btn_three_phase_start_torque_test.setEnabled(not running)
+
+
+        self.label_71.setEnabled(not running)
+        self.lineEdit_cns_step_time.setEnabled(not running)
+        self.ckb_cns_150.setEnabled(not running)
 
         self.btn_auto_test_stop.setEnabled(running)
     
@@ -620,9 +629,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             step_time = int(step_time) if step_time else 60
             print(f'[on_btn_CNS14400_test_clicked] cns step time: {step_time}')
 
+            # get the ckb state
+            enable_150 = self.ckb_cns_150.isChecked()
+
             # disable all the buttons
             self.task_running_mode(True)
-            self.auto_test_qthread = Qthread_run_CNS14400_test(self.test_runner, self.motor, step_time)
+            self.auto_test_qthread = Qthread_run_CNS14400_test(self.test_runner, self.motor, step_time, enable_150)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
             self.label_auto_test_state.setText('CNS14400測試中...')
@@ -633,7 +645,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
             return
         # a msg box to confirm the test and mechanical connection
-        reply = QMessageBox.question(self, '自動測試', '3相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        reply = QMessageBox.question(self, '自動測試', '三相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
         if reply == QMessageBox.StandardButton.Ok:
             # disable all the buttons
@@ -641,7 +653,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread = Qthread_run_three_phase_starting_torque_test(self.test_runner, self.motor)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
-            self.label_auto_test_state.setText('3相啟動轉矩測試中...')
+            self.label_auto_test_state.setText('三相啟動轉矩測試中...')
 
     def on_btn_1p_start_torque_test_clicked(self):  
         print('on_btn_1p_start_torque_test_clicked')
@@ -649,7 +661,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
             return
         # a msg box to confirm the test and mechanical connection
-        reply = QMessageBox.question(self, '自動測試', '1相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        reply = QMessageBox.question(self, '自動測試', '單相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
         if reply == QMessageBox.StandardButton.Ok:
             # disable all the buttons
@@ -657,7 +669,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.auto_test_qthread = Qthread_run_single_phase_starting_torque_test(self.test_runner, self.motor)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
-            self.label_auto_test_state.setText('1相啟動轉矩測試中...')
+            self.label_auto_test_state.setText('單相啟動轉矩測試中...')
         
 
 
