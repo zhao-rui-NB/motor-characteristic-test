@@ -1121,8 +1121,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1073</width>
-                 <height>531</height>
+                 <width>1056</width>
+                 <height>554</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -1204,6 +1204,13 @@
                     <widget class="QPushButton" name="btn_load_test">
                      <property name="text">
                       <string>負載測試</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btn_load_test_single">
+                     <property name="text">
+                      <string>負載測試(單相)</string>
                      </property>
                     </widget>
                    </item>

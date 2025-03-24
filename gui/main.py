@@ -150,6 +150,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_no_load_test.clicked.connect(self.on_no_load_test_clicked)
         self.btn_lock_rotor_test.clicked.connect(self.on_lock_rotor_test_clicked)
         self.btn_load_test.clicked.connect(self.on_load_test_clicked)
+        # single
+        self.btn_load_test_single.clicked.connect(self.on_btn_load_test_single_clicked)
         self.btn_separate_excitation_test.clicked.connect(self.on_separate_excitation_test_clicked)
         self.btn_frequency_drift_test.clicked.connect(self.on_frequency_drift_test_clicked)
 
@@ -516,6 +518,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_separate_excitation_test.setEnabled(not running)
         self.btn_frequency_drift_test.setEnabled(not running)
         self.btn_load_test.setEnabled(not running)
+        self.btn_load_test_single.setEnabled(not running)
         self.btn_CNS_test.setEnabled(not running)
 
         self.btn_single_phase_start_torque_test.setEnabled(not running)
@@ -574,7 +577,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.label_auto_test_state.setText('堵轉測試中...')
     def on_load_test_clicked(self): 
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
-            QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
+            # QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
             return
         # a msg box to confirm the test and mechanical connection
         reply = QMessageBox.question(self, '自動測試', '負載測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
@@ -582,10 +585,26 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if reply == QMessageBox.StandardButton.Ok:
             # disable all the buttons
             self.task_running_mode(True)
-            self.auto_test_qthread = Qthread_run_load_test(self.test_runner, self.motor)
+            self.auto_test_qthread = Qthread_run_load_test(self.test_runner, self.motor, run_with_single_phase=False)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
             self.label_auto_test_state.setText('負載測試中...')
+
+    def on_btn_load_test_single_clicked(self): 
+        if self.auto_test_qthread and self.auto_test_qthread.isRunning():
+            # QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
+            return
+        # a msg box to confirm the test and mechanical connection
+        reply = QMessageBox.question(self, '自動測試', '負載測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
+        
+        if reply == QMessageBox.StandardButton.Ok:
+            # disable all the buttons
+            self.task_running_mode(True)
+            self.auto_test_qthread = Qthread_run_load_test(self.test_runner, self.motor, run_with_single_phase=True)
+            self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
+            self.auto_test_qthread.start()
+            self.label_auto_test_state.setText('負載測試中...')
+    
     def on_separate_excitation_test_clicked(self):
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
@@ -684,6 +703,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
             # turn off the power supply
             self.device_manager.plc_electric.set_ps_output_off()
+            self.device_manager.plc_mechanical.set_break(0)
         
     def on_auto_test_task_done(self, succ):
         self.task_running_mode(False)

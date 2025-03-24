@@ -66,13 +66,14 @@ class Qthread_run_lock_rotor_test(QThread):
         
 class Qthread_run_load_test(QThread):
     signal_finish = pyqtSignal(bool)
-    def __init__(self, test_runner:TestRunner, motor:Motor):
+    def __init__(self, test_runner:TestRunner, motor:Motor, run_with_single_phase:bool):
         super().__init__()
         self.test_runner = test_runner
         self.motor = motor
+        self.run_with_single_phase = run_with_single_phase
     def run(self):
         try:
-            succ = self.test_runner.run_load_test(self.motor)
+            succ = self.test_runner.run_load_test(self.motor, run_with_single_phase=self.run_with_single_phase)
             self.signal_finish.emit(succ)
         except Exception as e:
             print(f"[Qthread_run_load_test] error: {e}")

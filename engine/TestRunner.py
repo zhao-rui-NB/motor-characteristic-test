@@ -476,6 +476,10 @@ class TestRunner:
         if run_with_single_phase:
             self.system_init(1)
             self.setup_ac_single_phase_and_check(motor)
+            if(motor.rated_voltage < 130):
+                self.device_manager.power_supply.set_voltage_range(100)
+            else:
+                self.device_manager.power_supply.set_voltage_range(200)
 
         else:
             self.system_init(3) # 3 phase system
@@ -528,14 +532,13 @@ class TestRunner:
 
             # check single phase motor is over current
             # if over current switch to single phase mode run again
-            # if motor.is_single_phase() and power_meter.get('I1') > 12:
-            if motor.is_single_phase() and not run_with_single_phase and power_meter.get('I1') > 13:
-                self.device_manager.plc_electric.set_motor_output_off()
-                time.sleep(1)
-                self.device_manager.power_supply.set_output(0)
-                print('[run_load_test] ERROR, Single Phase Motor Over Current')
-                print('[run_load_test] Retry with Single Phase Mode...')
-                return self.run_load_test(motor, run_with_single_phase=True)
+            # if motor.is_single_phase() and not run_with_single_phase and power_meter.get('I1') > 13:
+            #     self.device_manager.plc_electric.set_motor_output_off()
+            #     time.sleep(1)
+            #     self.device_manager.power_supply.set_output(0)
+            #     print('[run_load_test] ERROR, Single Phase Motor Over Current')
+            #     print('[run_load_test] Retry with Single Phase Mode...')
+            #     return self.run_load_test(motor, run_with_single_phase=True)
 
             if power_meter.get('I1') >= 13:
                 print('[run_load_test] early stop, over current,{power_meter.get("I1")}')
@@ -670,23 +673,42 @@ class TestRunner:
     
     def run_CNS14400_test(self, motor:Motor, run_with_single_phase=False, step_time=60, enable_150=True):
         
+        _meter_current_range = None
+
         # if motor is single phase voltage < 130 and hp > 0.25, run with single phase
         if not run_with_single_phase:
-            if motor.is_single_phase() and motor.rated_voltage < 130 and motor.horsepower > 0.25:
+            if motor.is_single_phase() and motor.rated_voltage < 130 and motor.horsepower > 0.24:
                 return self.run_CNS14400_test(motor, run_with_single_phase=True, step_time=step_time, enable_150=enable_150)
-
+            # 1p , 130-300V, hp > 0.49
+            elif motor.is_single_phase() and motor.rated_voltage >= 130 and motor.rated_voltage < 300 and motor.horsepower > 0.49:
+                return self.run_CNS14400_test(motor, run_with_single_phase=True, step_time=step_time, enable_150=enable_150)
 
 
         # print all parameter
         print(f"[run_CNS14400_test] run_with_single_phase:{run_with_single_phase}, step_time:{step_time}, enable_150:{enable_150}")
         
         def start_motor():
+            nonlocal  _meter_current_range
+
             # start motor
             if run_with_single_phase:
                 self.system_init(1)
                 self.setup_ac_single_phase_and_check(motor)
 
                 self.device_manager.power_supply.set_current_limit(30)
+
+
+                cur_range = [0.5, 1, 2, 5, 10, 20]
+                # find > 0.6 rated current in the list
+                current_range = 20 
+                for i in range(len(cur_range)):
+                    if cur_range[i] > motor.rated_current*0.1:
+                        current_range = cur_range[i]
+                        break
+                print(f"[run_load_test] setting current range to {current_range}")  
+                self.device_manager.power_meter.set_current_range(current_range)
+                # print(f"[run_load_test] ............. _meter_current_range {_meter_current_range}")
+                _meter_current_range = current_range
 
             else:
                 self.system_init(3) # 3 phase system
@@ -696,11 +718,13 @@ class TestRunner:
                 # find > 0.6 rated current in the list
                 current_range = 20 
                 for i in range(len(cur_range)):
-                    if cur_range[i] > motor.rated_current*6:
+                    if cur_range[i] > motor.rated_current*1:
                         current_range = cur_range[i]
                         break
                 print(f"[run_load_test] setting current range to {current_range}")  
                 self.device_manager.power_meter.set_current_range(current_range)
+                # print(f"[run_load_test] ............. _meter_current_range {_meter_current_range}")
+                _meter_current_range = current_range
 
             self.device_manager.power_supply.set_voltage(0)
             if run_with_single_phase:
@@ -777,7 +801,26 @@ class TestRunner:
                     self.device_manager.plc_mechanical.set_break(0)
                     if motor.is_single_phase():
                         break_da = 0
+                
+                # check current range if over 70% change to next range
+                power_meter = self.device_manager.power_meter.read_data()
 
+                # print(f"power_meter.get('I1'):{power_meter.get('I1')}, power_meter.get('I2'):{power_meter.get('I2')}, power_meter.get('I3'):{power_meter.get('I3')}, _meter_current_range:{_meter_current_range}")
+                # print(f"> ? {power_meter.get('I1') > _meter_current_range*0.7 or power_meter.get('I2') > _meter_current_range*0.7 or power_meter.get('I3') > _meter_current_range*0.7}")
+
+                if power_meter.get('I1') > _meter_current_range*0.7 or power_meter.get('I2') > _meter_current_range*0.7 or power_meter.get('I3') > _meter_current_range*0.7:
+                    # set power meter next current range 
+                    cur_range = [0.5, 1, 2, 5, 10, 20]
+                    new_current_range = 20
+                    for i in range(len(cur_range)):
+                        if cur_range[i] > _meter_current_range:
+                            new_current_range = cur_range[i]
+                            break
+                    # set new current range
+                    self.device_manager.power_meter.set_current_range(new_current_range)
+                    _meter_current_range = new_current_range 
+
+                    print(f"[run_CNS14400_test] meter over 70% change,change current range to {_meter_current_range}")
 
                 time.sleep(1)    
                     
@@ -789,16 +832,6 @@ class TestRunner:
                     for i in range(5):
                         mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
                         power_meter = self.device_manager.power_meter.read_data()
-                        
-                        # check single phase motor is over current
-                        if motor.is_single_phase() and not run_with_single_phase and power_meter.get('I1') > 5:
-                            self.device_manager.plc_electric.set_motor_output_off()
-                            time.sleep(1)
-                            self.device_manager.power_supply.set_output(0)
-                            print('[run_load_test] ERROR, Single Phase Motor Over Current')
-                            print('[run_load_test] Retry with Single Phase Mode...')
-                            return self.run_load_test(motor, run_with_single_phase=True)
-                        
                         
                         print(f"[run_CNS14400_test] read from power meter, V1:{power_meter.get('V1')}, I1:{power_meter.get('I1')}, P1:{power_meter.get('P1')}, F1:{power_meter.get('FU1')}")
                         raw_data.append({'power_meter': power_meter, 'mechanical': mechanical_data})
