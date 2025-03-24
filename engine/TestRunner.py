@@ -98,6 +98,13 @@ class TestRunner:
         else:
             self.device_manager.power_meter.set_voltage_range(600)
 
+
+        if(motor.rated_voltage > 250):
+            # print('[setup_ac_balance_and_check] device_manager.power_supply.set_voltage_range(200)')
+            self.device_manager.power_supply.set_voltage_range(200)
+        else:
+            self.device_manager.power_supply.set_voltage_range(100)
+
         # <Current> = 0.5, 1, 2, 5, 10, 20(A)
         cur_range = [0.5, 1, 2, 5, 10, 20]
         # find > 0.6 rated current in the list
@@ -157,6 +164,12 @@ class TestRunner:
         else:
             self.device_manager.power_meter.set_voltage_range(600)
         
+        if(motor.rated_voltage > 130):
+            self.device_manager.power_supply.set_voltage_range(200)
+        else:
+            self.device_manager.power_supply.set_voltage_range(100)
+
+
         self.device_manager.power_supply.set_source_mode(1) # 1 AC-INT 
         # g 設定ASR6450 電壓命令
         self.device_manager.power_supply.set_voltage(motor.rated_voltage)
