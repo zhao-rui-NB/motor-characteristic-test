@@ -133,13 +133,6 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="btn_remove_test_result">
-         <property name="text">
-          <string>清除資料</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="btn_new">
          <property name="text">
           <string>新增</string>
@@ -157,6 +150,20 @@
         <widget class="QPushButton" name="btn_save">
          <property name="text">
           <string>保存專案</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_output_cvt">
+         <property name="text">
+          <string>輸出轉檔</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btn_remove_test_result">
+         <property name="text">
+          <string>清除資料</string>
          </property>
         </widget>
        </item>

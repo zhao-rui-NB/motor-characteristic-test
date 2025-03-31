@@ -19,7 +19,7 @@ from gui.DualOutput import DualOutput
 
 import sys
 import os
-
+import subprocess
 
 
 class MainWindow(QMainWindow, Ui_MainWindow):
@@ -62,6 +62,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.monitor_timer.timeout.connect(self.on_update_manual_monitoring)
         
         self.saved_flag = True
+        self.opened_project_file = None
         self.update_file_save_status(True)
         
         ############################## init 
@@ -87,6 +88,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_open.clicked.connect(self.on_open_project)
         self.btn_new.clicked.connect(self.on_new_project)
         self.btn_remove_test_result.clicked.connect(self.on_remove_test_result)
+        self.btn_output_cvt.clicked.connect(self.on_btn_output_cvt)
         # self.btn_save_csv.clicked.connect(self.on_btn_save_csv)
         
         # motor parameter
@@ -445,6 +447,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             dir_path = os.path.dirname(file_name)
             self.motor.save_to_csv_files(dir_path)
             self.update_file_save_status(True)
+            self.opened_project_file = file_name
 
 
     
@@ -467,6 +470,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.update_test_result_page()
             
             self.update_file_save_status(True)
+            self.opened_project_file = file_name
                 
     def on_new_project(self):
         if not self.saved_flag:
@@ -483,6 +487,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.update_test_result_page()
         
         self.update_file_save_status(True)
+        self.opened_project_file = None
     
     def on_btn_save_csv(self):
         timestamp = self.motor.make_time_stamp()
@@ -507,6 +512,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.motor.remove_test_result()
         self.update_test_result_page()
     
+
+    def on_btn_output_cvt(self):
+        if self.opened_project_file is None:
+            QMessageBox.warning(self, 'Warning', '請先保存專案')
+            return
+        
+        work_dir = os.path.dirname(self.opened_project_file)
+        phase = '3' if self.motor.power_phases == 3 else '1'
+        run_process_cmd = '123479abq'
+        result = subprocess.run(['./convert.exe', work_dir, phase, run_process_cmd], capture_output=True, text=True, errors='replace')
+        
+
     ##############################################################################
     # Auto Test page
     ##############################################################################
