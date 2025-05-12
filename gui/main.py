@@ -520,7 +520,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         work_dir = os.path.dirname(self.opened_project_file)
         phase = '3' if self.motor.power_phases == 3 else '1'
-        run_process_cmd = '123479abq'
+        run_process_cmd = '123479abcdeftq'
         result = subprocess.run(['./convert.exe', work_dir, phase, run_process_cmd], capture_output=True, text=True, errors='replace')
         
 

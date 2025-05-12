@@ -677,7 +677,9 @@ class TestRunner:
         self.device_manager.plc_electric.set_motor_output_off()
         time.sleep(1)
         self.device_manager.power_supply.set_output(0)
-        
+        self.device_manager.plc_mechanical.set_break(0)
+
+
         # s. 存入資料 
         motor.add_result_frequency_drift(raw_data)
         # t. 結束測試 
@@ -859,6 +861,7 @@ class TestRunner:
             while True:
                 mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
                 if mechanical_data['speed'] < 1:
+                    self.device_manager.plc_mechanical.set_break(0)
                     break
                 time.sleep(1)
 
