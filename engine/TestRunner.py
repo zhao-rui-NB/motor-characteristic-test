@@ -98,12 +98,17 @@ class TestRunner:
         else:
             self.device_manager.power_meter.set_voltage_range(600)
 
-
-        if(motor.rated_voltage > 250):
-            # print('[setup_ac_balance_and_check] device_manager.power_supply.set_voltage_range(200)')
-            self.device_manager.power_supply.set_voltage_range(200)
+        if motor.is_single_phase():
+            if motor.rated_voltage > 150:
+                self.device_manager.power_supply.set_voltage_range(200)
+            else:
+                self.device_manager.power_supply.set_voltage_range(100)
         else:
-            self.device_manager.power_supply.set_voltage_range(100)
+            if(motor.rated_voltage > 250):
+                # print('[setup_ac_balance_and_check] device_manager.power_supply.set_voltage_range(200)')
+                self.device_manager.power_supply.set_voltage_range(200)
+            else:
+                self.device_manager.power_supply.set_voltage_range(100)
 
         # <Current> = 0.5, 1, 2, 5, 10, 20(A)
         cur_range = [0.5, 1, 2, 5, 10, 20]
