@@ -44,6 +44,11 @@ python test_tool/PowerSupplySimulator.py
 | 中盛数码管显示屏      | 四位七段顯示器   | modbus   |
 
 
+```
+convert.exe D:/three_phase/T123/20250519_172601 3 123479abcdeftq
+```
+
+
 
 
 

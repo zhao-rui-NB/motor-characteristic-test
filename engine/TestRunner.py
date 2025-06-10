@@ -101,8 +101,11 @@ class TestRunner:
         if motor.is_single_phase():
             if motor.rated_voltage > 150:
                 self.device_manager.power_supply.set_voltage_range(200)
+                self.device_manager.power_supply.set_current_limit(7.5)
             else:
                 self.device_manager.power_supply.set_voltage_range(100)
+                self.device_manager.power_supply.set_current_limit(15)
+
         else:
             if(motor.rated_voltage > 250):
                 # print('[setup_ac_balance_and_check] device_manager.power_supply.set_voltage_range(200)')
@@ -171,14 +174,16 @@ class TestRunner:
         
         if(motor.rated_voltage > 130):
             self.device_manager.power_supply.set_voltage_range(200)
+            self.device_manager.power_supply.set_current_limit(7.5*3)
         else:
             self.device_manager.power_supply.set_voltage_range(100)
+            self.device_manager.power_supply.set_current_limit(15*3)
 
 
         self.device_manager.power_supply.set_source_mode(1) # 1 AC-INT 
         # g 設定ASR6450 電壓命令
         self.device_manager.power_supply.set_voltage(motor.rated_voltage)
-        self.device_manager.power_supply.set_current_limit(15)
+        # self.device_manager.power_supply.set_current_limit(15)
         self.device_manager.power_supply.set_frequency(motor.frequency)
         self.device_manager.power_supply.set_output(1)
         time.sleep(1)
@@ -459,7 +464,8 @@ class TestRunner:
         
         self.device_manager.plc_electric.set_motor_output_single()            
         
-        self.device_manager.power_supply.set_current_limit(45)
+        # phase range 100v: 15 , 200V: 7.5 
+        # self.device_manager.power_supply.set_current_limit(45)
         self.device_manager.power_supply.set_voltage(motor.rated_voltage)
 
         raw_data = []
@@ -520,14 +526,14 @@ class TestRunner:
             self.device_manager.plc_electric.set_motor_output_three()
 
         # set voltage 30% - 100%
-        for i in range(30, 100+1, 5):
+        for i in range(70, 100+1, 5):
             if run_with_single_phase:
                 self.device_manager.power_supply.set_voltage(motor.rated_voltage*i/100)
-                time.sleep(1)
+                time.sleep(0.2)
             else:
                 self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732*i/100)
                 if motor.is_single_phase():
-                    time.sleep(1)
+                    time.sleep(0.1)
                 else:
                     time.sleep(0.2)
         time.sleep(1)
