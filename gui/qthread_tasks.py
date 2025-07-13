@@ -110,15 +110,16 @@ class Qthread_run_frequency_drift_test(QThread):
             
 class Qthread_run_CNS14400_test(QThread):
     signal_finish = pyqtSignal(bool)
-    def __init__(self, test_runner:TestRunner, motor:Motor, step_time:int, enable_150:bool):
+    def __init__(self, test_runner:TestRunner, motor:Motor, load_time_pairs):
         super().__init__()
         self.test_runner = test_runner
         self.motor = motor
-        self.step_time = step_time
-        self.enable_150 = enable_150
+        # self.step_time = step_time
+        # self.enable_150 = enable_150
+        self.load_time_pairs = load_time_pairs # list of tuples [(load, time)] percent, second
     def run(self):
         try:
-            succ = self.test_runner.run_CNS14400_test(self.motor, step_time=self.step_time, enable_150=self.enable_150)
+            succ = self.test_runner.run_CNS14400_test(self.motor, self.load_time_pairs)
             self.signal_finish.emit(succ)
         except Exception as e:
             print(f"[Qthread_run_CNS14400_test] error: {e}")

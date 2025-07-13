@@ -11,7 +11,7 @@ from engine.DataSender import DataSender
 from engine.DataCollector import DataCollector
 from engine.Motor import Motor
 from engine.TestRunner import TestRunner
-
+import engine.make_report
 
 from gui.ui.main_ui import Ui_MainWindow
 from gui.qthread_tasks import *
@@ -116,6 +116,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # self.lineEdit_para_other3.editingFinished.connect(lambda: self.on_motor_parameter_edited('serial_number', self.lineEdit_para_other3.text()))
         # self.lineEdit_para_other4.editingFinished.connect(lambda: self.on_motor_parameter_edited('note', self.lineEdit_para_other4.text()))
         
+        
+        # 絕緣種類 lineEdit_para_other
+        self.lineEdit_para_other.editingFinished.connect(lambda: self.motor.update_motor_information('絕緣種類', self.lineEdit_para_other.text()))
+        # 溫升 lineEdit_para_other_2
+        self.lineEdit_para_other_2.editingFinished.connect(lambda: self.motor.update_motor_information('溫升', self.lineEdit_para_other_2.text()))
         # 試驗日期 lineEdit_para_other_3
         self.lineEdit_para_other_3.editingFinished.connect(lambda: self.motor.update_motor_information('試驗日期', self.lineEdit_para_other_3.text()))
         # 檢驗員 lineEdit_para_other_4
@@ -158,17 +163,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_frequency_drift_test.clicked.connect(self.on_frequency_drift_test_clicked)
 
         # lineEdit_cns_step_time setValidator int
-        self.lineEdit_cns_step_time.setValidator(QIntValidator())
+        # self.lineEdit_cns_step_time.setValidator(QIntValidator())
+        self.lineEdit_cns_load_percent_1.setValidator(QIntValidator(0, 100))
+        self.lineEdit_cns_load_percent_2.setValidator(QIntValidator(0, 100))
+        self.lineEdit_cns_load_percent_3.setValidator(QIntValidator(0, 100))
+        self.lineEdit_cns_load_percent_4.setValidator(QIntValidator(0, 100))
+        self.lineEdit_cns_load_percent_5.setValidator(QIntValidator(0, 100))
+        self.lineEdit_cns_time_min_1.setValidator(QIntValidator(0, 500))
+        self.lineEdit_cns_time_min_2.setValidator(QIntValidator(0, 500))
+        self.lineEdit_cns_time_min_3.setValidator(QIntValidator(0, 500))
+        self.lineEdit_cns_time_min_4.setValidator(QIntValidator(0, 500))
+        self.lineEdit_cns_time_min_5.setValidator(QIntValidator(0, 500))
+        
 
-        # if line edit edit finish connect range not in 60-500 , set to 60
-
-        def on_lineEdit_cns_step_time():
-            if int(self.lineEdit_cns_step_time.text()) < 60:
-                self.lineEdit_cns_step_time.setText('60')
-            elif int(self.lineEdit_cns_step_time.text()) > 500:
-                self.lineEdit_cns_step_time.setText('500')
-                
-        self.lineEdit_cns_step_time.editingFinished.connect(on_lineEdit_cns_step_time)
         # self.lineEdit_cns_step_time.setValidator
         self.btn_CNS_test.clicked.connect(self.on_btn_CNS14400_test_clicked)
         
@@ -392,13 +399,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_para_frequency.setText(str(self.motor.frequency) if self.motor.frequency else '')
         self.lineEdit_para_power_phases.setText(str(self.motor.power_phases) if self.motor.power_phases else '')
         self.lineEdit_para_speed.setText(str(self.motor.speed) if self.motor.speed else '')
-        
-        # other 
-        # self.lineEdit_para_other1.setText(self.motor.manufacturer if self.motor.manufacturer else '')
-        # self.lineEdit_para_other2.setText(self.motor.model if self.motor.model else '')
-        # self.lineEdit_para_other3.setText(self.motor.serial_number if self.motor.serial_number else '')
-        # self.lineEdit_para_other4.setText(self.motor.note if self.motor.note else '')
 
+        self.lineEdit_para_other.setText(self.motor.information_dict.get('絕緣種類', ''))
+        self.lineEdit_para_other_2.setText(self.motor.information_dict.get('溫升', ''))
         self.lineEdit_para_other_3.setText(self.motor.information_dict.get('試驗日期', ''))
         self.lineEdit_para_other_4.setText(self.motor.information_dict.get('檢驗員', ''))
         self.lineEdit_para_other_5.setText(self.motor.information_dict.get('印表日期', ''))
@@ -412,6 +415,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_para_other_13.setText(self.motor.information_dict.get('轉子規格', ''))
         self.lineEdit_para_other_14.setText(self.motor.information_dict.get('本線', ''))
         self.lineEdit_para_other_15.setText(self.motor.information_dict.get('啟動線', ''))
+        
         
         self.plainTextEdit_para_other.setPlainText(self.motor.information_dict.get('備註', ''))
 
@@ -522,7 +526,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         phase = '3' if self.motor.power_phases == 3 else '1'
         run_process_cmd = '123479abcdeftq'
         result = subprocess.run(['./convert.exe', work_dir, phase, run_process_cmd], capture_output=True, text=True, errors='replace')
-        
+    
+        engine.make_report.make_report_a(self.motor, work_dir, f'{work_dir}/report/電動機特性計算表a.xlsx')
+        engine.make_report.make_report_b(self.motor, work_dir, f'{work_dir}/report/電動機特性計算表b.xlsx')
+        engine.make_report.make_report_cns(self.motor, work_dir, f'{work_dir}/report/電動機特性計算表cns.xlsx')
 
     ##############################################################################
     # Auto Test page
@@ -541,10 +548,18 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_single_phase_start_torque_test.setEnabled(not running)
         self.btn_three_phase_start_torque_test.setEnabled(not running)
 
-
-        self.label_71.setEnabled(not running)
-        self.lineEdit_cns_step_time.setEnabled(not running)
-        self.ckb_cns_150.setEnabled(not running)
+        self.lineEdit_cns_load_percent_1.setEnabled(not running)
+        self.lineEdit_cns_load_percent_2.setEnabled(not running)
+        self.lineEdit_cns_load_percent_3.setEnabled(not running)
+        self.lineEdit_cns_load_percent_4.setEnabled(not running)
+        self.lineEdit_cns_load_percent_5.setEnabled(not running)
+        self.lineEdit_cns_load_percent_6.setEnabled(not running)
+        self.lineEdit_cns_time_min_1.setEnabled(not running)
+        self.lineEdit_cns_time_min_2.setEnabled(not running)
+        self.lineEdit_cns_time_min_3.setEnabled(not running)
+        self.lineEdit_cns_time_min_4.setEnabled(not running)
+        self.lineEdit_cns_time_min_5.setEnabled(not running)
+        self.lineEdit_cns_time_min_6.setEnabled(not running)
 
         self.btn_auto_test_stop.setEnabled(running)
     
@@ -586,6 +601,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         reply = QMessageBox.question(self, '自動測試', '堵轉測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         
         if reply == QMessageBox.StandardButton.Ok:
+            # show 請開啟制動器冷卻空氣閥
+            QMessageBox.information(self, '提示', '請開啟制動器冷卻空氣閥')
             # disable all the buttons
             self.task_running_mode(True)
             self.auto_test_qthread = Qthread_run_lock_rotor_test(self.test_runner, self.motor)
@@ -600,6 +617,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         reply = QMessageBox.question(self, '自動測試', '負載測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         
         if reply == QMessageBox.StandardButton.Ok:
+            # show 請開啟制動器冷卻空氣閥
+            QMessageBox.information(self, '提示', '請開啟制動器冷卻空氣閥')
             # disable all the buttons
             self.task_running_mode(True)
             self.auto_test_qthread = Qthread_run_load_test(self.test_runner, self.motor, run_with_single_phase=False)
@@ -615,6 +634,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         reply = QMessageBox.question(self, '自動測試', '負載測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         
         if reply == QMessageBox.StandardButton.Ok:
+            # show 請開啟制動器冷卻空氣閥
+            QMessageBox.information(self, '提示', '請開啟制動器冷卻空氣閥')
             # disable all the buttons
             self.task_running_mode(True)
             self.auto_test_qthread = Qthread_run_load_test(self.test_runner, self.motor, run_with_single_phase=True)
@@ -644,6 +665,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         reply = QMessageBox.question(self, '自動測試', '頻率變動測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         
         if reply == QMessageBox.StandardButton.Ok:
+            # show 請開啟制動器冷卻空氣閥
+            QMessageBox.information(self, '提示', '請開啟制動器冷卻空氣閥')
             # disable all the buttons
             self.task_running_mode(True)
             self.auto_test_qthread = Qthread_run_frequency_drift_test(self.test_runner, self.motor)
@@ -659,18 +682,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         reply = QMessageBox.question(self, '自動測試', 'CNS14400測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
         
         if reply == QMessageBox.StandardButton.Ok:
-
+            # show 請開啟制動器冷卻空氣閥
+            QMessageBox.information(self, '提示', '請開啟制動器冷卻空氣閥')
             # get the step time 
-            step_time = self.lineEdit_cns_step_time.text()
-            step_time = int(step_time) if step_time else 60
-            print(f'[on_btn_CNS14400_test_clicked] cns step time: {step_time}')
+            
+            loads = [    
+                self.lineEdit_cns_load_percent_1.text(),
+                self.lineEdit_cns_load_percent_2.text(),
+                self.lineEdit_cns_load_percent_3.text(),
+                self.lineEdit_cns_load_percent_4.text(),
+                self.lineEdit_cns_load_percent_5.text(),
+                self.lineEdit_cns_load_percent_6.text()
+            ]
+            
+            times = [
+                self.lineEdit_cns_time_min_1.text(),
+                self.lineEdit_cns_time_min_2.text(),
+                self.lineEdit_cns_time_min_3.text(),
+                self.lineEdit_cns_time_min_4.text(),
+                self.lineEdit_cns_time_min_5.text(),
+                self.lineEdit_cns_time_min_6.text()
+            ]
+            
+            load_time_pairs = []
+            for load, time in zip(loads, times):
+                try:
+                    load = int(load) 
+                    time = int(time)*60
+                except ValueError:
+                    QMessageBox.warning(self, 'Warning', '請輸入正確的CNS測試數值')
+                    return
+                if load > 0 and time > 0:
+                    load_time_pairs.append((load, time))
 
-            # get the ckb state
-            enable_150 = self.ckb_cns_150.isChecked()
+            print(f'[on_btn_CNS14400_test_clicked] start cns, load and time: {load_time_pairs}')
 
             # disable all the buttons
             self.task_running_mode(True)
-            self.auto_test_qthread = Qthread_run_CNS14400_test(self.test_runner, self.motor, step_time, enable_150)
+            self.auto_test_qthread = Qthread_run_CNS14400_test(self.test_runner, self.motor, load_time_pairs)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
             self.label_auto_test_state.setText('CNS14400測試中...')
@@ -684,6 +733,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         reply = QMessageBox.question(self, '自動測試', '三相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
         if reply == QMessageBox.StandardButton.Ok:
+            # show 請開啟制動器冷卻空氣閥
+            QMessageBox.information(self, '提示', '請開啟制動器冷卻空氣閥')
             # disable all the buttons
             self.task_running_mode(True)
             self.auto_test_qthread = Qthread_run_three_phase_starting_torque_test(self.test_runner, self.motor)
@@ -700,6 +751,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         reply = QMessageBox.question(self, '自動測試', '單相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
         if reply == QMessageBox.StandardButton.Ok:
+            # show 請開啟制動器冷卻空氣閥
+            QMessageBox.information(self, '提示', '請開啟制動器冷卻空氣閥')
             # disable all the buttons
             self.task_running_mode(True)
             self.auto_test_qthread = Qthread_run_single_phase_starting_torque_test(self.test_runner, self.motor)
@@ -779,6 +832,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.mpl_load_2.clear_plot()
         self.mpl_load_3.clear_plot()
         self.mpl_load_4.clear_plot()
+        
+        self.mpl_merge_polt.clear_plot()
 
         if self.motor.result_load_test:
             ax0 = self.mpl_load.get_axes()

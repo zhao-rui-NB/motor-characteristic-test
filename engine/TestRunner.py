@@ -697,21 +697,17 @@ class TestRunner:
         print('[frequency_drift_test] Test Done')
         return True
     
-    def run_CNS14400_test(self, motor:Motor, run_with_single_phase=False, step_time=60, enable_150=True):
+    def run_CNS14400_test(self, motor:Motor, load_time_pairs, run_with_single_phase=False):
         
         _meter_current_range = None
 
         # if motor is single phase voltage < 130 and hp > 0.25, run with single phase
         if not run_with_single_phase:
             if motor.is_single_phase() and motor.rated_voltage < 130 and motor.horsepower > 0.24:
-                return self.run_CNS14400_test(motor, run_with_single_phase=True, step_time=step_time, enable_150=enable_150)
+                return self.run_CNS14400_test(motor, load_time_pairs, run_with_single_phase=True)
             # 1p , 130-300V, hp > 0.49
             elif motor.is_single_phase() and motor.rated_voltage >= 130 and motor.rated_voltage < 300 and motor.horsepower > 0.49:
-                return self.run_CNS14400_test(motor, run_with_single_phase=True, step_time=step_time, enable_150=enable_150)
-
-
-        # print all parameter
-        print(f"[run_CNS14400_test] run_with_single_phase:{run_with_single_phase}, step_time:{step_time}, enable_150:{enable_150}")
+                return self.run_CNS14400_test(motor, load_time_pairs, run_with_single_phase=True)
         
         def start_motor():
             nonlocal  _meter_current_range
@@ -772,8 +768,12 @@ class TestRunner:
             time.sleep(1)
             print('[run_CNS14400_test] 啟動完成')
         
-        
-        raw_data_dict = {} # key: load percent, value: data list
+        # dict key: 'load' 'dc_resistance_cold' 'load_{load_percent}'
+        # merge all load meter data into one load key
+        # { 'load': [{'power_meter': {...}, 'mechanical': {...}}, ...], 'dc_resistance_cold': {'power_meter': data}, 'load_30': {'power_meter': data}, ... }
+        raw_data_dict = {}
+        load_data = []
+        all_test_start_time = time.time()
 
         # cold test
         print('[run_CNS14400_test] Cold Test Start...')
@@ -781,22 +781,10 @@ class TestRunner:
         raw_data_dict['dc_resistance_cold'] = dc_raw_data
         print('[run_CNS14400_test] Cold Test Done')
         
-        # time 
-        # load_interval = 5*60
-        # load_interval = 60
-        load_interval = step_time
-        # load_arr = [25, 50, 75, 100, 115, 125, 150]
-        # load_arr = [25, 50, 75, 100, 125, 150] # remove 115
-
-        if enable_150:
-            load_arr = [25, 50, 75, 100, 125, 150]
-        else:
-            load_arr = [25, 50, 75, 100, 125]
-
-        
-        for load_percent in load_arr:
-            print(f'[run_CNS14400_test] Load Test {load_percent}% Start...')
+        for load_percent, time_second in load_time_pairs:
+            print(f'[run_CNS14400_test] Load Test {load_percent}% with time {time_second} seconds...')
             start_motor()
+            last_log_time = time.time()
             start_time = time.time()    
             break_da = 0
             while True:
@@ -804,7 +792,7 @@ class TestRunner:
                 mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
                 now_power = mechanical_data['speed'] * mechanical_data['torque'] / 9.549
                 # 剩餘時間
-                print(f"[run_CNS14400_test] Time Left:{load_interval - (time.time() - start_time)}, DA:{break_da},current power:{now_power}, target power:{motor.horsepower*746*load_percent / 100}")
+                print(f"[run_CNS14400_test] Time Left:{time_second - (time.time() - start_time)}, DA:{break_da},current power:{now_power}, target power:{motor.horsepower*746*load_percent / 100}")
 
                 if mechanical_data['speed'] > 0.6*motor.speed:
                     # PI control
@@ -831,9 +819,6 @@ class TestRunner:
                 # check current range if over 70% change to next range
                 power_meter = self.device_manager.power_meter.read_data()
 
-                # print(f"power_meter.get('I1'):{power_meter.get('I1')}, power_meter.get('I2'):{power_meter.get('I2')}, power_meter.get('I3'):{power_meter.get('I3')}, _meter_current_range:{_meter_current_range}")
-                # print(f"> ? {power_meter.get('I1') > _meter_current_range*0.7 or power_meter.get('I2') > _meter_current_range*0.7 or power_meter.get('I3') > _meter_current_range*0.7}")
-
                 if power_meter.get('I1') > _meter_current_range*0.7 or power_meter.get('I2') > _meter_current_range*0.7 or power_meter.get('I3') > _meter_current_range*0.7:
                     # set power meter next current range 
                     cur_range = [0.5, 1, 2, 5, 10, 20]
@@ -849,20 +834,23 @@ class TestRunner:
                     print(f"[run_CNS14400_test] meter over 70% change,change current range to {_meter_current_range}")
 
                 time.sleep(1)    
-                    
-                if time.time() - start_time > load_interval:    
+                
+                if time.time() - last_log_time > 10:
+                    last_log_time = time.time()
                     # print start log data 
-                    print(f"[run_CNS14400_test] start read {load_percent}% data")
+                    print(f"[run_CNS14400_test] start read {load_percent}% data, time: {time.time() - all_test_start_time}")
                     # record data
                     raw_data = []
-                    for i in range(5):
+                    for i in range(1):
                         mechanical_data = self.device_manager.plc_mechanical.get_mechanical_data() 
                         power_meter = self.device_manager.power_meter.read_data()
-                        
                         print(f"[run_CNS14400_test] read from power meter, V1:{power_meter.get('V1')}, I1:{power_meter.get('I1')}, P1:{power_meter.get('P1')}, F1:{power_meter.get('FU1')}")
-                        raw_data.append({'power_meter': power_meter, 'mechanical': mechanical_data})
+                        raw_data.append({'clock': {'time': time.time() - all_test_start_time} , 'power_meter': power_meter, 'mechanical': mechanical_data})
                         time.sleep(1)
-                    raw_data_dict[f'load_{load_percent}'] = raw_data
+                    # raw_data_dict[f'load_{load_percent}'] = raw_data
+                    load_data.extend(raw_data)
+                
+                if time.time() - start_time > time_second: # time out for next load percent
                     # turn off motor
                     self.device_manager.plc_electric.set_motor_output_off()
                     self.device_manager.plc_mechanical.set_break(100) 
@@ -884,7 +872,9 @@ class TestRunner:
 
             print(f'[run_CNS14400_test] Load Test {load_percent}% Done')
 
-        # save data
+        # save data load
+        raw_data_dict[f'load'] = load_data
+        # save raw data to motor
         motor.add_result_CNS14400(raw_data_dict)
 
         print('[run_CNS14400_test] Test Done')

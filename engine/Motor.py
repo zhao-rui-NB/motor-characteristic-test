@@ -869,6 +869,7 @@ class Motor:
                 'result_frequency_drift': self.result_frequency_drift,
                 'result_CNS14400': self.result_CNS14400,
                 'result_three_phase_starting_torque': self.result_three_phase_starting_torque,
+                'result_single_phase_starting_torque': self.result_single_phase_starting_torque,
             },
             
             'test_data_log': {
@@ -880,6 +881,7 @@ class Motor:
                 'frequency_drift': self.data_frequency_drift,
                 'CNS14400': self.data_CNS14400,
                 'three_phase_starting_torque': self.data_three_phase_starting_torque,
+                'single_phase_starting_torque': self.data_single_phase_starting_torque,
             },
         }
         
