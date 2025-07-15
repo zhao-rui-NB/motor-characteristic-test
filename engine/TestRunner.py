@@ -131,7 +131,7 @@ class TestRunner:
         # g 設定ASR6450 電壓命令
         self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732)
         # h 設定ASR6450 最大電流命令(無載電流*120%)
-        self.device_manager.power_supply.set_current_limit(15)
+        # self.device_manager.power_supply.set_current_limit(15)
 
         # i 設定ASR6450 頻率輸出命令
         self.device_manager.power_supply.set_frequency(motor.frequency)
@@ -348,8 +348,9 @@ class TestRunner:
             raw_data.append({'power_meter': data})
         
         # q 關閉測試電壓輸出Y27
-        self.device_manager.power_supply.set_output(0)
         self.device_manager.plc_electric.set_motor_output_off()
+        time.sleep(1)
+        self.device_manager.power_supply.set_output(0)
         # r 存入資料 
         motor.add_result_open_circuit(raw_data)
         # s 結束測試 
@@ -580,17 +581,24 @@ class TestRunner:
         return True
     # 鐵損分離試驗
     def run_separate_excitation_test(self, motor:Motor):
-        self.system_init(3) # 3 phase system
-        self.setup_ac_balance_and_check(motor)
-
-        print('[run_separate_excitation_test] ”待測馬達請脫離扭矩測試系統”')
+        if motor.is_single_phase():
+            self.system_init(1)
+            self.setup_ac_single_phase_and_check(motor)
+            self.device_manager.plc_electric.set_motor_output_single()
+        else:
+            self.system_init(3) # 3 phase system
+            self.setup_ac_balance_and_check(motor)
+            self.device_manager.plc_electric.set_motor_output_three()
         
         # o. 設定ASR6450 輸出電壓=20%額定電壓(減少啟動電流衝擊) 設定外部輸出開關 (啟動測試電壓輸出Y24 OR Y25) , 逐漸調整輸出電壓到額定電壓的80%(每0.5 Sec增加 5%)等待3 Sec 讓系統穩定後, 開是測試:
-        self.device_manager.plc_electric.set_motor_output_three()
             
         # set voltage 30% - 100%
         for i in range(30, 100+1, 5):
-            self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * i/100)
+            if motor.is_single_phase():
+                self.device_manager.power_supply.set_voltage(motor.rated_voltage*i/100)                
+            else:
+                self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * i/100)
+
             time.sleep(0.2)
         print('[run_open_circuit_test] 啟動完成')
     
@@ -598,7 +606,11 @@ class TestRunner:
         # q. 逐漸調整輸出電壓到額定電壓的120%  [80%-120%]
         raw_data = []
         for p in range(116, 80-1, -4):
-            self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * p/100)
+            if motor.is_single_phase():
+                self.device_manager.power_supply.set_voltage(motor.rated_voltage*p/100)
+            else:
+                self.device_manager.power_supply.set_voltage(motor.rated_voltage/1.732 * p/100)
+
             time.sleep(3)
             data:dict = self.device_manager.power_meter.read_data()
             raw_data.append({'power_meter': data})
@@ -717,7 +729,7 @@ class TestRunner:
                 self.system_init(1)
                 self.setup_ac_single_phase_and_check(motor)
 
-                self.device_manager.power_supply.set_current_limit(30)
+                # self.device_manager.power_supply.set_current_limit(30)
 
 
                 cur_range = [0.5, 1, 2, 5, 10, 20]
