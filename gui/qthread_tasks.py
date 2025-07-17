@@ -127,13 +127,14 @@ class Qthread_run_CNS14400_test(QThread):
 
 class Qthread_run_three_phase_starting_torque_test(QThread):
     signal_finish = pyqtSignal(bool)
-    def __init__(self, test_runner:TestRunner, motor:Motor):
+    def __init__(self, test_runner:TestRunner, motor:Motor, test_voltage):
         super().__init__()
         self.test_runner = test_runner
         self.motor = motor
+        self.test_voltage = test_voltage
     def run(self):
         try:
-            succ = self.test_runner.run_three_phase_starting_torque_test(self.motor)
+            succ = self.test_runner.run_three_phase_starting_torque_test(self.motor, self.test_voltage)
             self.signal_finish.emit(succ)
         except Exception as e:
             print(f"[Qthread_run_three_phase_starting_torque_test] error: {e}")
@@ -142,13 +143,14 @@ class Qthread_run_three_phase_starting_torque_test(QThread):
 
 class Qthread_run_single_phase_starting_torque_test(QThread):
     signal_finish = pyqtSignal(bool)
-    def __init__(self, test_runner:TestRunner, motor:Motor):
+    def __init__(self, test_runner:TestRunner, motor:Motor, test_voltage):
         super().__init__()
         self.test_runner = test_runner
         self.motor = motor
+        self.test_voltage = test_voltage
     def run(self):
         try:
-            succ = self.test_runner.run_singel_phase_starting_torque_test(self.motor)
+            succ = self.test_runner.run_singel_phase_starting_torque_test(self.motor, self.test_voltage)
             self.signal_finish.emit(succ)
         except Exception as e:
             print(f"[Qthread_run_single_phase_starting_torque_test] error: {e}")

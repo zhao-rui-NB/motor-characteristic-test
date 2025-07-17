@@ -226,7 +226,8 @@ class TestRunner:
 
         self.device_manager.power_supply.set_instrument_edit(1) # 同時調整
         self.device_manager.power_supply.set_source_mode(2) # 0 DC-INT # e 設定ASR6450 DC+INT 三相系統
-        self.device_manager.power_supply.set_current_limit(motor.rated_current*1.2) # h 設定ASR6450 最大電流命令(滿載電流*120%)
+        # self.device_manager.power_supply.set_current_limit(motor.rated_current*1.2) # h 設定ASR6450 最大電流命令(滿載電流*120%)
+        self.device_manager.power_supply.set_current_limit(7) # h 設定ASR6450 最大電流命令(滿載電流*120%)
         
         self.device_manager.power_supply.set_voltage_offset(0) # set all dc offset to 0
         self.device_manager.power_supply.set_output(1) # 打開輸出
@@ -405,7 +406,7 @@ class TestRunner:
         return True
     
     # 3p 啟動轉矩試驗
-    def run_three_phase_starting_torque_test(self, motor:Motor):
+    def run_three_phase_starting_torque_test(self, motor:Motor, test_voltage):
         self.system_init(3) # 3 phase system
         self.setup_ac_balance_and_check(motor)
         self.device_manager.power_meter.set_voltage_range(300)
@@ -414,12 +415,12 @@ class TestRunner:
         
         self.device_manager.plc_electric.set_motor_output_three()
             
-        v_test = 0
         raw_data = []
-        while True:
-            self.device_manager.power_supply.set_voltage(v_test/1.732)
-            time.sleep(1)
 
+        self.device_manager.power_supply.set_voltage(test_voltage/1.732)
+        time.sleep(2)
+
+        for i in range(5):
             power_meter = self.device_manager.power_meter.read_data()
             mechanical = self.device_manager.plc_mechanical.get_mechanical_data()
 
@@ -427,11 +428,7 @@ class TestRunner:
             print(f"[run_three_phase_starting_torque_test] read from power meter, {meter_str}")
 
             raw_data.append({'power_meter': power_meter, 'mechanical': mechanical})
-            
-            now_current = power_meter.get('I_SIGMA')
-            if now_current >= motor.rated_current*4 or now_current >= 10:
-                break
-            v_test += 10
+            time.sleep(1)
                 
         self.device_manager.power_supply.set_output(0)
         self.device_manager.plc_electric.set_motor_output_off()
@@ -444,7 +441,7 @@ class TestRunner:
         return True
     
     # 1p 
-    def run_singel_phase_starting_torque_test(self, motor:Motor):
+    def run_singel_phase_starting_torque_test(self, motor:Motor, test_voltage):
         self.system_init(1) # 3 phase system
         self.setup_ac_single_phase_and_check(motor)
         
@@ -467,7 +464,7 @@ class TestRunner:
         
         # phase range 100v: 15 , 200V: 7.5 
         # self.device_manager.power_supply.set_current_limit(45)
-        self.device_manager.power_supply.set_voltage(motor.rated_voltage)
+        self.device_manager.power_supply.set_voltage(test_voltage) 
 
         raw_data = []
         for i in range(5):

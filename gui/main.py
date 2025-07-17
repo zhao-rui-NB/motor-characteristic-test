@@ -90,6 +90,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_remove_test_result.clicked.connect(self.on_remove_test_result)
         self.btn_output_cvt.clicked.connect(self.on_btn_output_cvt)
         # self.btn_save_csv.clicked.connect(self.on_btn_save_csv)
+        self.btn_export_report.clicked.connect(self.on_btn_export_report)
         
         # motor parameter
         # set all line edit input check 
@@ -419,6 +420,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         self.plainTextEdit_para_other.setPlainText(self.motor.information_dict.get('備註', ''))
 
+        # try to get start torque test voltage
+        try:
+            starting_torque_test_v = self.motor.rated_voltage * 0.7
+            starting_torque_test_v = f'{starting_torque_test_v:.2f}'
+        except:
+            starting_torque_test_v = ''
+        # set the starting torque test voltage
+        self.lineEdit_start_torque_v.setText(starting_torque_test_v)
+
 
 
     ##############################################################################
@@ -527,10 +537,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         run_process_cmd = '123479abcdeftq'
         result = subprocess.run(['./convert.exe', work_dir, phase, run_process_cmd], capture_output=True, text=True, errors='replace')
     
+
+    def on_btn_export_report(self):
+        if self.opened_project_file is None:
+            QMessageBox.warning(self, 'Warning', '請先保存專案')
+            return
+        
+        work_dir = os.path.dirname(self.opened_project_file)
+
         engine.make_report.make_report_a(self.motor, work_dir, f'{work_dir}/report/電動機特性計算表a.xlsx')
         engine.make_report.make_report_b(self.motor, work_dir, f'{work_dir}/report/電動機特性計算表b.xlsx')
         engine.make_report.make_report_cns(self.motor, work_dir, f'{work_dir}/report/電動機特性計算表cns.xlsx')
-
+    
+    
     ##############################################################################
     # Auto Test page
     ##############################################################################
@@ -545,21 +564,24 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.btn_load_test_single.setEnabled(not running)
         self.btn_CNS_test.setEnabled(not running)
 
-        self.btn_single_phase_start_torque_test.setEnabled(not running)
-        self.btn_three_phase_start_torque_test.setEnabled(not running)
+        # self.btn_single_phase_start_torque_test.setEnabled(not running)
+        # self.btn_three_phase_start_torque_test.setEnabled(not running)
 
-        self.lineEdit_cns_load_percent_1.setEnabled(not running)
-        self.lineEdit_cns_load_percent_2.setEnabled(not running)
-        self.lineEdit_cns_load_percent_3.setEnabled(not running)
-        self.lineEdit_cns_load_percent_4.setEnabled(not running)
-        self.lineEdit_cns_load_percent_5.setEnabled(not running)
-        self.lineEdit_cns_load_percent_6.setEnabled(not running)
-        self.lineEdit_cns_time_min_1.setEnabled(not running)
-        self.lineEdit_cns_time_min_2.setEnabled(not running)
-        self.lineEdit_cns_time_min_3.setEnabled(not running)
-        self.lineEdit_cns_time_min_4.setEnabled(not running)
-        self.lineEdit_cns_time_min_5.setEnabled(not running)
-        self.lineEdit_cns_time_min_6.setEnabled(not running)
+        # self.lineEdit_cns_load_percent_1.setEnabled(not running)
+        # self.lineEdit_cns_load_percent_2.setEnabled(not running)
+        # self.lineEdit_cns_load_percent_3.setEnabled(not running)
+        # self.lineEdit_cns_load_percent_4.setEnabled(not running)
+        # self.lineEdit_cns_load_percent_5.setEnabled(not running)
+        # self.lineEdit_cns_load_percent_6.setEnabled(not running)
+        # self.lineEdit_cns_time_min_1.setEnabled(not running)
+        # self.lineEdit_cns_time_min_2.setEnabled(not running)
+        # self.lineEdit_cns_time_min_3.setEnabled(not running)
+        # self.lineEdit_cns_time_min_4.setEnabled(not running)
+        # self.lineEdit_cns_time_min_5.setEnabled(not running)
+        # self.lineEdit_cns_time_min_6.setEnabled(not running)
+
+        self.groupBox_3.setEnabled(not running)
+        self.groupBox_2.setEnabled(not running)
 
         self.btn_auto_test_stop.setEnabled(running)
     
@@ -729,6 +751,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
             return
+        
+        # get the test voltage
+        try:
+            test_voltage = float(self.lineEdit_start_torque_v.text())
+        except ValueError:
+            QMessageBox.warning(self, 'Warning', '請輸入正確的測試電壓')
+            return
+        
+        
         # a msg box to confirm the test and mechanical connection
         reply = QMessageBox.question(self, '自動測試', '三相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
@@ -737,7 +768,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.information(self, '提示', '請開啟制動器冷卻空氣閥')
             # disable all the buttons
             self.task_running_mode(True)
-            self.auto_test_qthread = Qthread_run_three_phase_starting_torque_test(self.test_runner, self.motor)
+            self.auto_test_qthread = Qthread_run_three_phase_starting_torque_test(self.test_runner, self.motor, test_voltage)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
             self.label_auto_test_state.setText('三相啟動轉矩測試中...')
@@ -747,6 +778,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if self.auto_test_qthread and self.auto_test_qthread.isRunning():
             QMessageBox.warning(self, 'Warning', '自動測試正在進行中')
             return
+        
+        # get the test voltage
+        try:
+            test_voltage = float(self.lineEdit_start_torque_v.text())
+        except ValueError:
+            QMessageBox.warning(self, 'Warning', '請輸入正確的測試電壓')
+            return
+
         # a msg box to confirm the test and mechanical connection
         reply = QMessageBox.question(self, '自動測試', '單相啟動轉矩測試\n待測馬達請<連接>扭矩測試系統', QMessageBox.StandardButton.Ok | QMessageBox.StandardButton.Cancel)
 
@@ -755,7 +794,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             QMessageBox.information(self, '提示', '請開啟制動器冷卻空氣閥')
             # disable all the buttons
             self.task_running_mode(True)
-            self.auto_test_qthread = Qthread_run_single_phase_starting_torque_test(self.test_runner, self.motor)
+            self.auto_test_qthread = Qthread_run_single_phase_starting_torque_test(self.test_runner, self.motor, test_voltage)
             self.auto_test_qthread.signal_finish.connect(self.on_auto_test_task_done)
             self.auto_test_qthread.start()
             self.label_auto_test_state.setText('單相啟動轉矩測試中...')

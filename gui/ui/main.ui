@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1297</width>
-    <height>1190</height>
+    <width>1054</width>
+    <height>965</height>
    </rect>
   </property>
   <property name="sizeIncrement">
@@ -161,6 +161,13 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="btn_export_report">
+         <property name="text">
+          <string>匯出報表</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="btn_remove_test_result">
          <property name="text">
           <string>清除資料</string>
@@ -227,7 +234,7 @@
            <bool>false</bool>
           </property>
           <property name="currentIndex">
-           <number>3</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="page_connect_test">
            <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -241,8 +248,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>320</width>
-                 <height>217</height>
+                 <width>318</width>
+                 <height>212</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -484,8 +491,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>734</width>
-                 <height>508</height>
+                 <width>744</width>
+                 <height>517</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1128,8 +1135,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1129</width>
-                 <height>794</height>
+                 <width>869</width>
+                 <height>850</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -1222,34 +1229,60 @@
                     </widget>
                    </item>
                    <item>
-                    <widget class="QPushButton" name="btn_three_phase_start_torque_test">
-                     <property name="text">
-                      <string>三相啟動轉矩測試</string>
+                    <widget class="QGroupBox" name="groupBox_3">
+                     <property name="title">
+                      <string>啟動轉矩</string>
                      </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="btn_single_phase_start_torque_test">
-                     <property name="text">
-                      <string>單相啟動轉矩測試</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item>
-                    <widget class="QPushButton" name="btn_CNS_test">
-                     <property name="text">
-                      <string>CNS14400</string>
-                     </property>
+                     <layout class="QGridLayout" name="gridLayout_10">
+                      <item row="4" column="0">
+                       <widget class="QLabel" name="label_71">
+                        <property name="text">
+                         <string>測試電壓(V)</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="4" column="1">
+                       <widget class="QLineEdit" name="lineEdit_start_torque_v">
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="0" colspan="2">
+                       <widget class="QPushButton" name="btn_single_phase_start_torque_test">
+                        <property name="text">
+                         <string>單相啟動轉矩測試</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="0" colspan="2">
+                       <widget class="QPushButton" name="btn_three_phase_start_torque_test">
+                        <property name="text">
+                         <string>三相啟動轉矩測試</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
                     </widget>
                    </item>
                    <item>
                     <widget class="QGroupBox" name="groupBox_2">
                      <property name="title">
-                      <string>CNS14400 測試參數</string>
+                      <string>CNS14400</string>
                      </property>
                      <layout class="QGridLayout" name="gridLayout_9">
-                      <item row="6" column="2">
-                       <widget class="QLineEdit" name="lineEdit_cns_time_min_6">
+                      <item row="7" column="0">
+                       <widget class="QLabel" name="label_81">
+                        <property name="text">
+                         <string>5</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="7" column="2">
+                       <widget class="QLineEdit" name="lineEdit_cns_time_min_5">
                         <property name="text">
                          <string>1</string>
                         </property>
@@ -1258,37 +1291,17 @@
                         </property>
                        </widget>
                       </item>
-                      <item row="3" column="1">
-                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_3">
+                      <item row="7" column="1">
+                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_5">
                         <property name="text">
-                         <string>75</string>
+                         <string>115</string>
                         </property>
                         <property name="alignment">
                          <set>Qt::AlignCenter</set>
                         </property>
                        </widget>
                       </item>
-                      <item row="4" column="2">
-                       <widget class="QLineEdit" name="lineEdit_cns_time_min_4">
-                        <property name="text">
-                         <string>1</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="1" column="1">
-                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_1">
-                        <property name="text">
-                         <string>25</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="2">
+                      <item row="2" column="2">
                        <widget class="QLabel" name="label_75">
                         <property name="text">
                          <string>時間(分鐘)</string>
@@ -1298,18 +1311,22 @@
                         </property>
                        </widget>
                       </item>
-                      <item row="4" column="1">
-                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_4">
+                      <item row="5" column="0">
+                       <widget class="QLabel" name="label_79">
                         <property name="text">
-                         <string>100</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignCenter</set>
+                         <string>3</string>
                         </property>
                        </widget>
                       </item>
-                      <item row="3" column="2">
-                       <widget class="QLineEdit" name="lineEdit_cns_time_min_3">
+                      <item row="6" column="0">
+                       <widget class="QLabel" name="label_80">
+                        <property name="text">
+                         <string>4</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="6" column="2">
+                       <widget class="QLineEdit" name="lineEdit_cns_time_min_4">
                         <property name="text">
                          <string>1</string>
                         </property>
@@ -1319,16 +1336,26 @@
                        </widget>
                       </item>
                       <item row="2" column="1">
-                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_2">
+                       <widget class="QLabel" name="label_76">
                         <property name="text">
-                         <string>50</string>
+                         <string>負載百分比</string>
                         </property>
                         <property name="alignment">
                          <set>Qt::AlignCenter</set>
                         </property>
                        </widget>
                       </item>
-                      <item row="2" column="2">
+                      <item row="6" column="1">
+                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_4">
+                        <property name="text">
+                         <string>100</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="4" column="2">
                        <widget class="QLineEdit" name="lineEdit_cns_time_min_2">
                         <property name="text">
                          <string>1</string>
@@ -1339,7 +1366,7 @@
                        </widget>
                       </item>
                       <item row="5" column="2">
-                       <widget class="QLineEdit" name="lineEdit_cns_time_min_5">
+                       <widget class="QLineEdit" name="lineEdit_cns_time_min_3">
                         <property name="text">
                          <string>1</string>
                         </property>
@@ -1348,37 +1375,7 @@
                         </property>
                        </widget>
                       </item>
-                      <item row="6" column="1">
-                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_6">
-                        <property name="text">
-                         <string>125</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="1">
-                       <widget class="QLabel" name="label_76">
-                        <property name="text">
-                         <string>負載百分比</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="5" column="1">
-                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_5">
-                        <property name="text">
-                         <string>115</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="1" column="2">
+                      <item row="3" column="2">
                        <widget class="QLineEdit" name="lineEdit_cns_time_min_1">
                         <property name="text">
                          <string>1</string>
@@ -1388,45 +1385,81 @@
                         </property>
                        </widget>
                       </item>
-                      <item row="1" column="0">
-                       <widget class="QLabel" name="label_77">
+                      <item row="8" column="0">
+                       <widget class="QLabel" name="label_82">
                         <property name="text">
-                         <string>1</string>
+                         <string>6</string>
                         </property>
                        </widget>
                       </item>
-                      <item row="2" column="0">
+                      <item row="4" column="1">
+                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_2">
+                        <property name="text">
+                         <string>50</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="3" column="1">
+                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_1">
+                        <property name="text">
+                         <string>25</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="4" column="0">
                        <widget class="QLabel" name="label_78">
                         <property name="text">
                          <string>2</string>
                         </property>
                        </widget>
                       </item>
+                      <item row="5" column="1">
+                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_3">
+                        <property name="text">
+                         <string>75</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="8" column="1">
+                       <widget class="QLineEdit" name="lineEdit_cns_load_percent_6">
+                        <property name="text">
+                         <string>125</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="8" column="2">
+                       <widget class="QLineEdit" name="lineEdit_cns_time_min_6">
+                        <property name="text">
+                         <string>1</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
                       <item row="3" column="0">
-                       <widget class="QLabel" name="label_79">
+                       <widget class="QLabel" name="label_77">
                         <property name="text">
-                         <string>3</string>
+                         <string>1</string>
                         </property>
                        </widget>
                       </item>
-                      <item row="4" column="0">
-                       <widget class="QLabel" name="label_80">
+                      <item row="0" column="0" colspan="3">
+                       <widget class="QPushButton" name="btn_CNS_test">
                         <property name="text">
-                         <string>4</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="5" column="0">
-                       <widget class="QLabel" name="label_81">
-                        <property name="text">
-                         <string>5</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="6" column="0">
-                       <widget class="QLabel" name="label_82">
-                        <property name="text">
-                         <string>6</string>
+                         <string>CNS14400</string>
                         </property>
                        </widget>
                       </item>
@@ -1483,8 +1516,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>1112</width>
-                 <height>2861</height>
+                 <width>508</width>
+                 <height>2864</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -2150,7 +2183,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>810</width>
-                 <height>870</height>
+                 <height>854</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -3410,8 +3443,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1297</width>
-     <height>31</height>
+     <width>1054</width>
+     <height>30</height>
     </rect>
    </property>
   </widget>
