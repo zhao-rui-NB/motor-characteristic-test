@@ -628,18 +628,18 @@ class TestRunner:
     def run_frequency_drift_test(self, motor:Motor, run_with_single_phase=False):
         
         if not run_with_single_phase:
-            if motor.is_single_phase() and motor.rated_voltage < 130 and motor.horsepower > 0.25:
+            # if motor.is_single_phase() and motor.rated_voltage < 130 and motor.horsepower > 0.25:
+            if motor.is_single_phase():
                 print('[run_frequency_drift_test] Retry with Single Phase Mode...')
                 return self.run_frequency_drift_test(motor, run_with_single_phase=True)
+            
+        
 
         
         if run_with_single_phase:
             self.system_init(1)
             self.setup_ac_single_phase_and_check(motor)
             self.device_manager.plc_electric.set_motor_output_single()
-
-            self.device_manager.power_supply.set_current_limit(35)
-
         else:
             self.system_init(3) # 3 phase system    
             self.setup_ac_balance_and_check(motor)
