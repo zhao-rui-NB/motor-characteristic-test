@@ -29,10 +29,8 @@ python test_tool/SegmentDisplaySimulator.py
 python test_tool/PowerSupplySimulator.py
 ```
 
-## 外部轉檔工具
-必須要匯出: `loadsort.csv`, `load_report.csv` 後續才能產生excel report
 ```
-convert.exe D:/three_phase/T123/20250519_172601 3 123479abcdeftq
+& "C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE" test_file/gen/電動機特性計算表b.xlsx
 ```
 
 ## 自動測試選項 測試項目功能說明表
@@ -52,10 +50,19 @@ convert.exe D:/three_phase/T123/20250519_172601 3 123479abcdeftq
 | CNS14400 測試          | `run_CNS14400_test`                 | 單相、三相 | 馬達在多種負載比例（如 25%、50%、75%、100%）下長時間運轉，每段運轉後進行熱電阻測試以比對溫升特性，模擬實際使用壽命與負載情境。 |
 
 
+# 報告
 
+## 外部轉檔工具
+必須要匯出: `load_report_x.csv`, `loadsort_x.csv`, `load_x.csv`, `cns14400_report.csv` 後續才能產生excel report
+```
+convert.exe D:/three_phase/T123/20250519_172601 3 123479abcdeftq
+```
 
+## 報表製作依賴關係
+[範例CSV](test_file/CSV/2025_0730)
 
-
-
-
-
+| 報表種類  | 依賴關係 |
+|----------|----------|
+| a        | load_report_x |
+| b1       | loadsort_x, load_x |
+| cns      | cns14400_report |
