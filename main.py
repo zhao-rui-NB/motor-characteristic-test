@@ -13,6 +13,6 @@ if __name__ == "__main__":
         window.show()
         sys.exit(app.exec())
     except Exception as e:
-        print(f"An error occurred: {e}")
-        input("Press Enter to exit...")
-        sys.exit(1)
+        print(f"[ERROR] 發生嚴重異常錯誤，請重啟馬達測試系統: {e}")
+        # input("Press Enter to exit...")
+        # sys.exit(1)

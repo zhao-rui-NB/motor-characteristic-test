@@ -9,7 +9,7 @@ import shutil
 #
 
 
-VERSION = '1.2'
+VERSION = '1.3'
 BUILD_TIME = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 MAKE_RESULT_DIR = f'.MAKE_RESULT/{BUILD_TIME}/馬達測試系統V{VERSION}'
 os.makedirs(MAKE_RESULT_DIR, exist_ok=True)

@@ -40,6 +40,7 @@ def make_report_a(motor: Motor, input_dir, output_path: str):
     
     ws['C7'] = motor.rated_voltage
     ws['G7'] = motor.rated_current
+    ws['K7'] = motor.horsepower*0.746 if motor.horsepower else ''
     ws['M7'] = motor.horsepower
     
     ws['C8'] = motor.no_load_current
@@ -48,6 +49,10 @@ def make_report_a(motor: Motor, input_dir, output_path: str):
     ws['O8'] = motor.poles
     
     ws['C9'] = motor.speed
+    ws['G9'] = motor.information_dict.get("周圍溫度" , "")
+    ws['K9'] = motor.information_dict.get("冷電阻" , "")
+    ws['O9'] = motor.information_dict.get("熱電阻" , "")
+    
     
     ws['C10'] = motor.information_dict.get("溫升" , "")
     ws['G10'] = motor.information_dict.get("絕緣種類" , "")
@@ -153,6 +158,7 @@ def make_report_b(motor: Motor, input_dir, output_path: str):
 
 
     ws['A8'] = motor.horsepower
+    ws['B8'] = motor.horsepower*0.746 if motor.horsepower else ''
     ws['C8'] = motor.power_phases
     ws['D8'] = motor.frequency
     ws['E8'] = motor.rated_voltage
@@ -166,7 +172,7 @@ def make_report_b(motor: Motor, input_dir, output_path: str):
 
 
     # ####################### data table #######################
-    load_report_csv = os.path.join(input_dir, 'load_x.csv')
+    load_report_csv = os.path.join(input_dir, 'load_report_x.csv')
     if not os.path.exists(load_report_csv):
         print(f"[make_report_a] Load report CSV file not found: {load_report_csv}")
         return
@@ -184,6 +190,10 @@ def make_report_b(motor: Motor, input_dir, output_path: str):
         for row in reader:
             v_header.append(row[-1].strip())
             csv_data.append(list(map(float, row[:-1])))
+        
+        if len(csv_data) > 7:
+            # only keep the first 7 rows
+            csv_data = csv_data[:7]
             
         # print("v_header:", v_header)
         # print("csv_data:", csv_data) 
@@ -263,6 +273,7 @@ def make_report_cns(motor: Motor, input_dir, output_path: str):
     ws['J4'] = motor.information_dict.get("型式" , "")
     ws['P4'] = motor.information_dict.get("試驗日期", "")
     
+    ws['C5'] = motor.horsepower*0.746 if motor.horsepower else ''
     ws['E5'] = motor.horsepower
     ws['I5'] = motor.rated_current
     ws['M5'] = motor.no_load_current
@@ -272,6 +283,8 @@ def make_report_cns(motor: Motor, input_dir, output_path: str):
     ws['F6'] = motor.poles
     ws['I6'] = motor.power_phases
     ws['M6'] = motor.speed
+    ws['Q6'] = motor.information_dict.get("周圍溫度", "")
+    
 
 
     # ####################### data table #######################

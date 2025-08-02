@@ -148,6 +148,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_para_other_14.editingFinished.connect(lambda: self.motor.update_motor_information('本線', self.lineEdit_para_other_14.text()))
         # 啟動線 lineEdit_para_other_15
         self.lineEdit_para_other_15.editingFinished.connect(lambda: self.motor.update_motor_information('啟動線', self.lineEdit_para_other_15.text()))
+        # 周圍溫度 lineEdit_para_other_16
+        self.lineEdit_para_other_16.editingFinished.connect(lambda: self.motor.update_motor_information('周圍溫度', self.lineEdit_para_other_16.text()))
+        # 冷電阻 lineEdit_para_other_17
+        self.lineEdit_para_other_17.editingFinished.connect(lambda: self.motor.update_motor_information('冷電阻', self.lineEdit_para_other_17.text()))
+        # 熱電阻 lineEdit_para_other_18
+        self.lineEdit_para_other_18.editingFinished.connect(lambda: self.motor.update_motor_information('熱電阻', self.lineEdit_para_other_18.text()))
         # 備註 plainTextEdit_para_other
         self.plainTextEdit_para_other.textChanged.connect(lambda: self.motor.update_motor_information('備註', self.plainTextEdit_para_other.toPlainText()))
 
@@ -417,6 +423,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.lineEdit_para_other_14.setText(self.motor.information_dict.get('本線', ''))
         self.lineEdit_para_other_15.setText(self.motor.information_dict.get('啟動線', ''))
         
+        self.lineEdit_para_other_16.setText(self.motor.information_dict.get('周圍溫度', ''))
+        self.lineEdit_para_other_17.setText(self.motor.information_dict.get('冷電阻', ''))
+        self.lineEdit_para_other_18.setText(self.motor.information_dict.get('熱電阻', ''))
+        
         
         self.plainTextEdit_para_other.setPlainText(self.motor.information_dict.get('備註', ''))
 
@@ -446,7 +456,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         phase = 'three_phase' if self.motor.power_phases == 3 else 'single_phase'
         model = self.motor.information_dict.get('型式', '無型式')
+        # check computer has D:
         default_dir = f'D:/{phase}/{model}/{timestamp}'
+        if not os.path.exists('D:/'):
+            QMessageBox.warning(self, 'Warning', '電腦沒有 D: 磁碟機')
+            default_dir = default_dir.replace('D:/', './')
+
         os.makedirs(default_dir, exist_ok=True)
 
         # a save dialog to save the file
@@ -534,9 +549,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
         work_dir = os.path.dirname(self.opened_project_file)
         phase = '3' if self.motor.power_phases == 3 else '1'
-        run_process_cmd = '123479abcdeftq'
-        result = subprocess.run(['./convert.exe', work_dir, phase, run_process_cmd], capture_output=True, text=True, errors='replace')
-    
+        # run_process_cmd = '123479abcdeftq'
+        run_process_cmd = '12348t7abq' if self.motor.power_phases == 3 else '1348t7abq'
+        # result = subprocess.run(['./convert.exe', work_dir, phase, run_process_cmd], capture_output=True, text=True, errors='replace')
+        
+        print(f'[on_btn_output_cvt] 開始執行外部程式 convert.exe, 工作目錄: {work_dir}, phase: {phase}, run_process_cmd: {run_process_cmd}')
+        
+        try:
+            result = subprocess.run(
+                ['./convert.exe', work_dir, phase, run_process_cmd],
+                capture_output=True,
+                text=True
+            )
+
+            # 設定 log 檔案路徑
+            timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
+            log_path = os.path.join(work_dir, f'convert_exe_{timestamp}.log')
+
+            with open(log_path, 'w', encoding='utf-8') as f:
+                f.write('=== 標準輸出 (stdout) ===\n')
+                f.write(result.stdout + '\n')
+                f.write('=== 錯誤輸出 (stderr) ===\n')
+                f.write(result.stderr + '\n')
+
+            print(f'[on_btn_output_cvt] 外部程式執行結束, 輸出已寫入 {log_path}')
+        except Exception as e:
+            print(f'[on_btn_output_cvt] 執行外部程式時發生錯誤: {str(e)}')
+        
+        
 
     def on_btn_export_report(self):
         if self.opened_project_file is None:

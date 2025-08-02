@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1054</width>
-    <height>965</height>
+    <width>1819</width>
+    <height>1425</height>
    </rect>
   </property>
   <property name="sizeIncrement">
@@ -234,7 +234,7 @@
            <bool>false</bool>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="page_connect_test">
            <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -248,8 +248,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>318</width>
-                 <height>212</height>
+                 <width>1465</width>
+                 <height>803</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_16">
@@ -491,8 +491,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>744</width>
-                 <height>517</height>
+                 <width>1651</width>
+                 <height>972</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -679,10 +679,17 @@
                    <enum>QFrame::Raised</enum>
                   </property>
                   <layout class="QGridLayout" name="gridLayout_6">
-                   <item row="0" column="11">
-                    <widget class="QLabel" name="label_16">
+                   <item row="0" column="8">
+                    <widget class="QLabel" name="label_14">
                      <property name="text">
-                      <string>A</string>
+                      <string>HP</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="2">
+                    <widget class="QLabel" name="label_18">
+                     <property name="text">
+                      <string>rpm</string>
                      </property>
                     </widget>
                    </item>
@@ -690,197 +697,6 @@
                     <widget class="QLabel" name="label_10">
                      <property name="text">
                       <string>轉速</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="3">
-                    <widget class="QLabel" name="label_6">
-                     <property name="text">
-                      <string>額定電流</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="9">
-                    <widget class="QLabel" name="label_23">
-                     <property name="text">
-                      <string>絕緣種類</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="2">
-                    <widget class="QLabel" name="label_13">
-                     <property name="text">
-                      <string>V</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="0">
-                    <widget class="QLabel" name="label_12">
-                     <property name="text">
-                      <string>相數</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="1">
-                    <widget class="QLineEdit" name="lineEdit_para_speed">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>90</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="5">
-                    <widget class="QLabel" name="label_15">
-                     <property name="text">
-                      <string>A</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="label_5">
-                     <property name="text">
-                      <string>額定電壓</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="11">
-                    <widget class="QLabel" name="label_74">
-                     <property name="text">
-                      <string>C</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="8">
-                    <widget class="QLabel" name="label_20">
-                     <property name="text">
-                      <string>poles</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="3" column="10">
-                    <widget class="QLineEdit" name="lineEdit_para_other">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                       <horstretch>1</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>90</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="4">
-                    <widget class="QLineEdit" name="lineEdit_para_rated_current">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>90</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="4">
-                    <widget class="QLineEdit" name="lineEdit_para_frequency">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>90</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="10">
-                    <widget class="QLineEdit" name="lineEdit_para_no_load_current">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>90</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="10">
-                    <widget class="QLineEdit" name="lineEdit_para_other_2">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>90</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="2">
-                    <widget class="QLabel" name="label_19">
-                     <property name="text">
-                      <string>phase</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="9">
-                    <widget class="QLabel" name="label_8">
-                     <property name="text">
-                      <string>空載電流</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="7">
-                    <widget class="QLineEdit" name="lineEdit_para_horsepower">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>0</height>
-                      </size>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>90</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                     <property name="text">
-                      <string/>
                      </property>
                     </widget>
                    </item>
@@ -909,22 +725,166 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="0" column="8">
-                    <widget class="QLabel" name="label_14">
+                   <item row="0" column="5">
+                    <widget class="QLabel" name="label_15">
                      <property name="text">
-                      <string>HP</string>
+                      <string>A</string>
                      </property>
                     </widget>
                    </item>
-                   <item row="2" column="6">
-                    <widget class="QLabel" name="label_9">
+                   <item row="2" column="8">
+                    <widget class="QLabel" name="label_20">
                      <property name="text">
-                      <string>極數</string>
+                      <string>poles</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="10">
+                    <widget class="QLineEdit" name="lineEdit_para_no_load_current">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="9">
+                    <widget class="QLabel" name="label_8">
+                     <property name="text">
+                      <string>空載電流</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="3">
+                    <widget class="QLabel" name="label_11">
+                     <property name="text">
+                      <string>頻率</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_12">
+                     <property name="text">
+                      <string>相數</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="11">
+                    <widget class="QLabel" name="label_16">
+                     <property name="text">
+                      <string>A</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_5">
+                     <property name="text">
+                      <string>額定電壓</string>
                      </property>
                     </widget>
                    </item>
                    <item row="2" column="1">
                     <widget class="QLineEdit" name="lineEdit_para_power_phases">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="2">
+                    <widget class="QLabel" name="label_19">
+                     <property name="text">
+                      <string>phase</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="7">
+                    <widget class="QLineEdit" name="lineEdit_para_horsepower">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="minimumSize">
+                      <size>
+                       <width>0</width>
+                       <height>0</height>
+                      </size>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                     <property name="text">
+                      <string/>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="2">
+                    <widget class="QLabel" name="label_13">
+                     <property name="text">
+                      <string>V</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="4">
+                    <widget class="QLineEdit" name="lineEdit_para_rated_current">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QLineEdit" name="lineEdit_para_speed">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="7">
+                    <widget class="QLineEdit" name="lineEdit_para_poles">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                        <horstretch>0</horstretch>
@@ -952,24 +912,10 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="3" column="2">
-                    <widget class="QLabel" name="label_18">
+                   <item row="2" column="6">
+                    <widget class="QLabel" name="label_9">
                      <property name="text">
-                      <string>rpm</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="3">
-                    <widget class="QLabel" name="label_11">
-                     <property name="text">
-                      <string>頻率</string>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="2" column="9">
-                    <widget class="QLabel" name="label_73">
-                     <property name="text">
-                      <string>溫升</string>
+                      <string>極數</string>
                      </property>
                     </widget>
                    </item>
@@ -980,25 +926,169 @@
                      </property>
                     </widget>
                    </item>
-                   <item row="2" column="7">
-                    <widget class="QLineEdit" name="lineEdit_para_poles">
+                   <item row="2" column="4">
+                    <widget class="QLineEdit" name="lineEdit_para_frequency">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                        <horstretch>0</horstretch>
                        <verstretch>0</verstretch>
                       </sizepolicy>
                      </property>
-                     <property name="minimumSize">
+                     <property name="maximumSize">
                       <size>
-                       <width>0</width>
-                       <height>0</height>
+                       <width>90</width>
+                       <height>16777215</height>
                       </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="3">
+                    <widget class="QLabel" name="label_6">
+                     <property name="text">
+                      <string>額定電流</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="10">
+                    <widget class="QLineEdit" name="lineEdit_para_other">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>1</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
                      </property>
                      <property name="maximumSize">
                       <size>
                        <width>90</width>
                        <height>16777215</height>
                       </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="9">
+                    <widget class="QLabel" name="label_23">
+                     <property name="text">
+                      <string>絕緣種類</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="9">
+                    <widget class="QLabel" name="label_73">
+                     <property name="text">
+                      <string>溫升</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="10">
+                    <widget class="QLineEdit" name="lineEdit_para_other_2">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="11">
+                    <widget class="QLabel" name="label_74">
+                     <property name="text">
+                      <string>C</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="3">
+                    <widget class="QLabel" name="label_83">
+                     <property name="text">
+                      <string>冷電阻</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="4">
+                    <widget class="QLineEdit" name="lineEdit_para_other_17">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="5">
+                    <widget class="QLabel" name="label_84">
+                     <property name="text">
+                      <string>ohm</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="6">
+                    <widget class="QLabel" name="label_85">
+                     <property name="text">
+                      <string>熱電阻</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="7">
+                    <widget class="QLineEdit" name="lineEdit_para_other_18">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="8">
+                    <widget class="QLabel" name="label_86">
+                     <property name="text">
+                      <string>ohm</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="9">
+                    <widget class="QLabel" name="label_87">
+                     <property name="text">
+                      <string>周圍溫度</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="10">
+                    <widget class="QLineEdit" name="lineEdit_para_other_16">
+                     <property name="sizePolicy">
+                      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                       <horstretch>0</horstretch>
+                       <verstretch>0</verstretch>
+                      </sizepolicy>
+                     </property>
+                     <property name="maximumSize">
+                      <size>
+                       <width>90</width>
+                       <height>16777215</height>
+                      </size>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="11">
+                    <widget class="QLabel" name="label_88">
+                     <property name="text">
+                      <string>C</string>
                      </property>
                     </widget>
                    </item>
@@ -1135,8 +1225,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>869</width>
-                 <height>850</height>
+                 <width>1448</width>
+                 <height>855</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -1516,8 +1606,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>508</width>
-                 <height>2864</height>
+                 <width>1448</width>
+                 <height>2861</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_19">
@@ -2182,8 +2272,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>810</width>
-                 <height>854</height>
+                 <width>1448</width>
+                 <height>870</height>
                 </rect>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_8">
@@ -3443,8 +3533,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1054</width>
-     <height>30</height>
+     <width>1819</width>
+     <height>31</height>
     </rect>
    </property>
   </widget>

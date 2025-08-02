@@ -53,7 +53,7 @@ python test_tool/PowerSupplySimulator.py
 # 報告
 
 ## 外部轉檔工具
-必須要匯出: `load_report_x.csv`, `loadsort_x.csv`, `load_x.csv`, `cns14400_report.csv` 後續才能產生excel report
+必須要匯出: `load_report_x.csv`, `load_x.csv`, `cns14400_report.csv` 後續才能產生excel report
 ```
 convert.exe D:/three_phase/T123/20250519_172601 3 123479abcdeftq
 ```
@@ -64,5 +64,5 @@ convert.exe D:/three_phase/T123/20250519_172601 3 123479abcdeftq
 | 報表種類  | 依賴關係 |
 |----------|----------|
 | a        | load_report_x |
-| b1       | loadsort_x, load_x |
+| b1       | load_report_x, load_x |
 | cns      | cns14400_report |
