@@ -559,13 +559,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             result = subprocess.run(
                 ['./convert.exe', work_dir, phase, run_process_cmd],
                 capture_output=True,
-                text=True
+                text=True,
+                errors='replace'
             )
 
             # 設定 log 檔案路徑
             timestamp = time.strftime('%Y%m%d_%H%M%S', time.localtime())
             log_path = os.path.join(work_dir, f'convert_exe_{timestamp}.log')
 
+            # rm the file
             with open(log_path, 'w', encoding='utf-8') as f:
                 f.write('=== 標準輸出 (stdout) ===\n')
                 f.write(result.stdout + '\n')
