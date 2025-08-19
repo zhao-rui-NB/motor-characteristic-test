@@ -559,8 +559,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             result = subprocess.run(
                 ['./convert.exe', work_dir, phase, run_process_cmd],
                 capture_output=True,
-                text=True,
-                errors='replace'
+                # text=True,
+                # errors='replace'
             )
 
             # 設定 log 檔案路徑
@@ -568,11 +568,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             log_path = os.path.join(work_dir, f'convert_exe_{timestamp}.log')
 
             # rm the file
-            with open(log_path, 'w', encoding='utf-8') as f:
-                f.write('=== 標準輸出 (stdout) ===\n')
-                f.write(result.stdout + '\n')
-                f.write('=== 錯誤輸出 (stderr) ===\n')
-                f.write(result.stderr + '\n')
+            with open(log_path, 'wb') as f:
+                f.write('=== 標準輸出 (stdout) ===\n'.encode('utf-8'))
+                f.write(result.stdout)
+                f.write('\n=== 錯誤輸出 (stderr) ===\n'.encode('utf-8'))    
+                f.write(result.stderr)
 
             print(f'[on_btn_output_cvt] 外部程式執行結束, 輸出已寫入 {log_path}')
         except Exception as e:
