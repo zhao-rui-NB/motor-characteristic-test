@@ -1,4 +1,4 @@
-# Form implementation generated from reading ui file 'c:\Users\rui\Desktop\motor-characteristic-test\gui\ui\main.ui'
+# Form implementation generated from reading ui file 'c:\Users\MyUser\Desktop\motor-characteristic-test\gui\ui\main.ui'
 #
 # Created by: PyQt6 UI code generator 6.4.2
 #
@@ -2151,13 +2151,3 @@ class Ui_MainWindow(object):
         self.btn_manual_power_supply_phase_angle_L12.setText(_translate("MainWindow", "L12"))
         self.btn_manual_power_supply_phase_angle_L13.setText(_translate("MainWindow", "L13"))
 from gui.MplWidget import MplWidget
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec())

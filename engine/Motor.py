@@ -1,10 +1,12 @@
 # %%
 from datetime import datetime
 import matplotlib.pyplot as plt
+from matplotlib import font_manager
 import os 
 import csv
-# set plot font
-plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei']
+
+plt.rcParams['font.sans-serif'] = ['Microsoft JhengHei']  # 改成支援中文的字體
+plt.rcParams['axes.unicode_minus'] = False  # 避免負號顯示成方塊
 
 class Motor:
     def __init__(self):
