@@ -184,7 +184,9 @@ class Motor:
         print('voltage', voltage)
         print('current', current)
 
-        resistance = [ v / i for v, i in zip(voltage, current) ]
+        # resistance = [ v / i for v, i in zip(voltage, current) ]
+        # fix bug, avoid division by zero
+        resistance = [ v / i if i != 0 else 0 for v, i in zip(voltage, current) ]
 
         if self.is_single_phase():
             self.result_dc_resistance = sum(resistance) / len(resistance)
