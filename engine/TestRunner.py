@@ -567,6 +567,8 @@ class TestRunner:
                 break
             if mechanical['speed'] <= 1:
                 break
+            if mechanical['speed'] <= motor.speed * 0.8:
+                break
 
         # t. 關閉測試電壓輸出Y27
         self.device_manager.power_supply.set_output(0)
