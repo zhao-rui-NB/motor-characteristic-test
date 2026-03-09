@@ -563,12 +563,20 @@ class TestRunner:
             #     return self.run_load_test(motor, run_with_single_phase=True)
 
             if power_meter.get('I1') >= 13:
-                print('[run_load_test] early stop, over current,{power_meter.get("I1")}')
+                print(f'[run_load_test] early stop, over current,{power_meter.get("I1")}')
                 break
             if mechanical['speed'] <= 1:
+                print(f'[run_load_test] stop, locked rotor,{mechanical["speed"]}')
                 break
             if mechanical['speed'] <= motor.speed * 0.8:
+                print(f'[run_load_test] early stop, speed < 80%: {mechanical["speed"]}')
                 break
+            
+            # calc power output
+            if mechanical['speed'] * mechanical['torque'] * (2*3.14/60) > motor.horsepower*746*1.6:
+                print(f'[run_load_test] early stop, Po > 160%')
+                break
+
 
         # t. 關閉測試電壓輸出Y27
         self.device_manager.power_supply.set_output(0)
